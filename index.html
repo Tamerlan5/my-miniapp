@@ -1,31 +1,290 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мое тестовое приложение</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My MiniApp</title>
+    <!-- Подключаем скрипт Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
-        h1 { color: #333; }
-        #user-name { color: #007bff; }
+        :root {
+            --bg-color: #0f0f0f;
+            --accent: #ff3b30;
+            --text: #ffffff;
+            --glass-bg: rgba(30, 30, 30, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            /* Убираем ползунок скролла */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Фоновые линии (SVG) */
+        .bg-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05; /* Еле заметные */
+            pointer-events: none;
+        }
+
+        /* Затемнение по краям */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, #000000 120%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Контент */
+        .content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 85vh; /* Чтобы было куда скроллить, если контента станет больше */
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        /* Нижнее меню (iOS style) */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .glass-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 8px 16px;
+            width: 85%;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .nav-item:active {
+            transform: scale(0.9);
+        }
+
+        /* SVG иконки */
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #888888;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.3s;
+        }
+
+        /* Активная иконка */
+        .nav-item.active svg {
+            stroke: var(--accent);
+        }
+
+        /* Ползунок (свайп-индикатор) */
+        .slider {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 59, 48, 0.15); /* Полупрозрачный красный */
+            border-radius: 50%;
+            top: 8px;
+            left: 16px;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 1;
+        }
+
     </style>
 </head>
 <body>
-    <h1>Привет, <span id="user-name">гость</span>!</h1>
-    <p>Это мое первое мини-приложение.</p>
-    <button id="test-btn">Нажми меня</button>
-    <p id="result"></p>
+
+    <!-- Telegram WebApp -->
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand();
-        const user = tg.initDataUnsafe.user;
-        if (user) { document.getElementById('user-name').innerText = user.first_name; }
-        document.getElementById('test-btn').addEventListener('click', () => {
-            document.getElementById('result').innerText = 'Кнопка работает!';
-            tg.HapticFeedback.impactOccurred('light');
+        tg.expand(); // Развернуть на весь экран
+        
+        // Устанавливаем цвет шапки Telegram под наш фон
+        tg.setHeaderColor('#0f0f0f');
+        tg.setBackgroundColor('#0f0f0f');
+    </script>
+
+    <!-- Фоновые линии -->
+    <svg class="bg-lines" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <defs>
+            <pattern id="diagonalHatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="40" stroke="#ffffff" stroke-width="1" />
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#diagonalHatch)" />
+        
+        <!-- Большие круги для текстуры -->
+        <circle cx="10%" cy="20%" r="150" stroke="#ffffff" stroke-width="1" fill="none" />
+        <circle cx="90%" cy="80%" r="200" stroke="#ffffff" stroke-width="1" fill="none" />
+    </svg>
+
+    <!-- Затемнение -->
+    <div class="vignette"></div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <h1>Привет, <span id="user-name">пользователь</span></h1>
+    </div>
+
+    <!-- Нижнее меню -->
+    <div class="nav-container">
+        <div class="glass-nav" id="nav">
+            <div class="slider" id="slider"></div>
+
+            <!-- Иконка 1: Главная (Дом) -->
+            <div class="nav-item active" onclick="moveSlider(0, this)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </div>
+
+            <!-- Иконка 2: Поиск (Лупа) -->
+            <div class="nav-item" onclick="moveSlider(1, this)">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+
+            <!-- Иконка 3: Избранное (Сердце) -->
+            <div class="nav-item" onclick="moveSlider(2, this)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </div>
+
+            <!-- Иконка 4: Профиль (Человек) -->
+            <div class="nav-item" onclick="moveSlider(3, this)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Получаем имя пользователя из Telegram
+        const user = tg.initDataUnsafe?.user;
+        if (user && user.first_name) {
+            document.getElementById('user-name').textContent = user.first_name;
+        }
+
+        // Логика свайп-меню
+        const slider = document.getElementById('slider');
+        const navItems = document.querySelectorAll('.nav-item');
+        let currentIndex = 0;
+
+        // Ширина одного шага (50px иконка + отступы). 
+        // Вычисляем динамически для надежности, но примерно это 60-70px
+        function getStepWidth() {
+            const navRect = document.getElementById('nav').getBoundingClientRect();
+            const itemRect = navItems[0].getBoundingClientRect();
+            // Расстояние между центрами иконок
+            const firstCenter = navItems[0].offsetLeft + navItems[0].offsetWidth / 2;
+            const secondCenter = navItems[1].offsetLeft + navItems[1].offsetWidth / 2;
+            return secondCenter - firstCenter;
+        }
+
+        let stepWidth = getStepWidth();
+
+        // Пересчитываем при ресайзе
+        window.addEventListener('resize', () => {
+            stepWidth = getStepWidth();
+            moveSlider(currentIndex, navItems[currentIndex], true);
         });
+
+        function moveSlider(index, element, isResize = false) {
+            currentIndex = index;
+            
+            // Убираем активный класс у всех
+            navItems.forEach(item => item.classList.remove('active'));
+            // Добавляем текущему
+            element.classList.add('active');
+
+            // Двигаем ползунок
+            // Изначально ползунок имеет left: 16px (padding контейнера)
+            // Нам нужно сдвигать его на stepWidth * index
+            const offset = stepWidth * index;
+            slider.style.transform = `translateX(${offset}px)`;
+        }
+
+        // Инициализация ползунка при загрузке
+        setTimeout(() => {
+            stepWidth = getStepWidth();
+            moveSlider(0, navItems[0]);
+        }, 100);
+
     </script>
 </body>
 </html>
