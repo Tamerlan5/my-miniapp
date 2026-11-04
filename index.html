@@ -156,21 +156,43 @@
             left: 16px;
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 1;
+            opacity: 0; /* Скрываем до инициализации */
+        }
+
+        .slider.ready {
+            opacity: 1; /* Показываем, когда все просчитано */
         }
 
     </style>
 </head>
 <body>
 
-    <!-- Telegram WebApp -->
     <script>
+        // 1. Инициализация Telegram
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Развернуть на весь экран
         
-        // Устанавливаем цвет шапки Telegram под наш фон
+        // 2. Принудительный разворот на весь экран
+        tg.expand();
+        
+        // Пытаемся включить полноэкранный режим (если поддерживается версией Telegram)
+        try {
+            if (tg.isVersionAtLeast('8.0')) {
+                tg.requestFullscreen();
+            }
+        } catch (e) {
+            console.log("Fullscreen not supported", e);
+        }
+
+        // Красим шапку и фон Telegram под наш цвет
         tg.setHeaderColor('#0f0f0f');
         tg.setBackgroundColor('#0f0f0f');
+
+        // Получаем имя пользователя
+        const user = tg.initDataUnsafe?.user;
+        if (user && user.first_name) {
+            document.getElementById('user-name').textContent = user.first_name;
+        }
     </script>
 
     <!-- Фоновые линии -->
@@ -182,7 +204,6 @@
         </defs>
         <rect width="100%" height="100%" fill="url(#diagonalHatch)" />
         
-        <!-- Большие круги для текстуры -->
         <circle cx="10%" cy="20%" r="150" stroke="#ffffff" stroke-width="1" fill="none" />
         <circle cx="90%" cy="80%" r="200" stroke="#ffffff" stroke-width="1" fill="none" />
     </svg>
@@ -200,7 +221,7 @@
         <div class="glass-nav" id="nav">
             <div class="slider" id="slider"></div>
 
-            <!-- Иконка 1: Главная (Дом) -->
+            <!-- Иконка 1: Главная -->
             <div class="nav-item active" onclick="moveSlider(0, this)">
                 <svg viewBox="0 0 24 24">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -208,7 +229,7 @@
                 </svg>
             </div>
 
-            <!-- Иконка 2: Поиск (Лупа) -->
+            <!-- Иконка 2: Поиск -->
             <div class="nav-item" onclick="moveSlider(1, this)">
                 <svg viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -216,14 +237,14 @@
                 </svg>
             </div>
 
-            <!-- Иконка 3: Избранное (Сердце) -->
+            <!-- Иконка 3: Избранное -->
             <div class="nav-item" onclick="moveSlider(2, this)">
                 <svg viewBox="0 0 24 24">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
             </div>
 
-            <!-- Иконка 4: Профиль (Человек) -->
+            <!-- Иконка 4: Профиль -->
             <div class="nav-item" onclick="moveSlider(3, this)">
                 <svg viewBox="0 0 24 24">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -234,37 +255,21 @@
     </div>
 
     <script>
-        // Получаем имя пользователя из Telegram
-        const user = tg.initDataUnsafe?.user;
-        if (user && user.first_name) {
-            document.getElementById('user-name').textContent = user.first_name;
-        }
-
         // Логика свайп-меню
         const slider = document.getElementById('slider');
         const navItems = document.querySelectorAll('.nav-item');
         let currentIndex = 0;
+        let stepWidth = 0;
 
-        // Ширина одного шага (50px иконка + отступы). 
-        // Вычисляем динамически для надежности, но примерно это 60-70px
-        function getStepWidth() {
-            const navRect = document.getElementById('nav').getBoundingClientRect();
-            const itemRect = navItems[0].getBoundingClientRect();
-            // Расстояние между центрами иконок
+        // Вычисляем расстояние между центрами иконок
+        function calculateStepWidth() {
+            if (navItems.length < 2) return;
             const firstCenter = navItems[0].offsetLeft + navItems[0].offsetWidth / 2;
             const secondCenter = navItems[1].offsetLeft + navItems[1].offsetWidth / 2;
-            return secondCenter - firstCenter;
+            stepWidth = secondCenter - firstCenter;
         }
 
-        let stepWidth = getStepWidth();
-
-        // Пересчитываем при ресайзе
-        window.addEventListener('resize', () => {
-            stepWidth = getStepWidth();
-            moveSlider(currentIndex, navItems[currentIndex], true);
-        });
-
-        function moveSlider(index, element, isResize = false) {
+        function moveSlider(index, element) {
             currentIndex = index;
             
             // Убираем активный класс у всех
@@ -273,18 +278,22 @@
             element.classList.add('active');
 
             // Двигаем ползунок
-            // Изначально ползунок имеет left: 16px (padding контейнера)
-            // Нам нужно сдвигать его на stepWidth * index
             const offset = stepWidth * index;
             slider.style.transform = `translateX(${offset}px)`;
         }
 
-        // Инициализация ползунка при загрузке
-        setTimeout(() => {
-            stepWidth = getStepWidth();
+        // Инициализация после полной загрузки DOM
+        window.addEventListener('load', () => {
+            calculateStepWidth();
             moveSlider(0, navItems[0]);
-        }, 100);
+            slider.classList.add('ready'); // Плавно показываем ползунок
+        });
 
+        // Пересчет при повороте экрана или ресайзе
+        window.addEventListener('resize', () => {
+            calculateStepWidth();
+            moveSlider(currentIndex, navItems[currentIndex]);
+        });
     </script>
 </body>
 </html>
