@@ -13,311 +13,238 @@
             --text-muted: #888888;
             --glass-bg: rgba(25, 25, 25, 0.65);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --card-bg: #161616;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text);
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            overflow-y: scroll;
-            overflow-x: hidden;
-            min-height: 100vh;
+            -ms-overflow-style: none; scrollbar-width: none;
+            overflow-y: scroll; overflow-x: hidden; min-height: 100vh;
         }
-
         body::-webkit-scrollbar { display: none; }
 
-        /* Фоновые линии */
-        .bg-lines {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.03;
-            pointer-events: none;
-        }
+        .bg-lines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03; pointer-events: none; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, #000000 120%); pointer-events: none; z-index: 0; }
 
-        /* Затемнение */
-        .vignette {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, transparent 30%, #000000 120%);
-            pointer-events: none;
-            z-index: 0;
-        }
+        .pages-container { position: relative; z-index: 1; width: 100%; min-height: 100vh; padding-bottom: 110px; }
+        .page { display: none; flex-direction: column; align-items: center; padding: 30px 20px; width: 100%; min-height: 100vh; animation: fadeIn 0.4s ease forwards; }
+        .page.active { display: flex; }
 
-        /* Контейнер для страниц */
-        .pages-container {
-            position: relative;
-            z-index: 1;
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Стили для Профиля и Лидеров --- */
+        .profile-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
             width: 100%;
-            height: 100vh;
-            padding-bottom: 100px; /* Отступ для меню */
-        }
-
-        .page {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            text-align: center;
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        .page.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Главный экран (текст) */
-        .main-brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        .brand-title {
-            font-size: 42px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            line-height: 1.1;
-        }
-
-        .brand-title .project {
-            background: linear-gradient(90deg, #ff3b30, #ff8a00, #ff3b30);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientMove 3s linear infinite;
-        }
-
-        .brand-title .profit {
-            color: var(--text);
-        }
-
-        .brand-subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
-            font-weight: 500;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-top: 4px;
-            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        @keyframes slideUpFade {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes gradientMove {
-            to { background-position: 200% center; }
-        }
-
-        /* Заглушки для других страниц */
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .page-desc {
-            color: var(--text-muted);
-            font-size: 15px;
-        }
-
-        /* Нижнее меню (стекло) */
-        .nav-container {
-            position: fixed;
-            bottom: 24px;
-            left: 0; width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .glass-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            max-width: 400px;
             border: 1px solid var(--glass-border);
-            border-radius: 40px;
-            padding: 8px 12px;
-            width: 88%;
-            max-width: 320px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            position: relative;
+            text-align: center;
+            margin-bottom: 20px;
         }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            height: 55px;
+        .avatar {
+            width: 80px; height: 80px;
             border-radius: 50%;
-            position: relative;
-            z-index: 2;
-            cursor: pointer;
-            transition: transform 0.2s;
-            gap: 4px;
+            background: #333;
+            margin: 0 auto 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: bold; color: #555;
+            border: 2px solid #444;
         }
+        .username {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+        .user-rank-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            background: rgba(255,255,255,0.1);
+        }
+        .privileges-list {
+            text-align: left;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .privileges-list h4 { margin-bottom: 8px; font-size: 14px; color: var(--text-muted); text-transform: uppercase; }
+        .privileges-list ul { list-style: none; }
+        .privileges-list li { font-size: 14px; margin-bottom: 6px; padding-left: 18px; position: relative; }
+        .privileges-list li::before { content: "•"; color: var(--accent); position: absolute; left: 0; }
 
+        .leaderboard-list {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid #222;
+        }
+        .leaderboard-item:last-child { border-bottom: none; }
+        .lb-rank { font-size: 16px; font-weight: bold; width: 30px; color: #555; }
+        .lb-rank.top-1 { color: #ffd700; }
+        .lb-rank.top-2 { color: #c0c0c0; }
+        .lb-rank.top-3 { color: #cd7f32; }
+        .lb-name { flex: 1; font-size: 16px; font-weight: 600; }
+        .lb-score { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+
+        /* --- Градиенты для рангов --- */
+        .rank-bronze { background: linear-gradient(90deg, #cd7f32, #a0522d); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+        .rank-silver { background: linear-gradient(90deg, #e0e0e0, #a0a0a0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+        .rank-gold { background: linear-gradient(90deg, #ffd700, #ff8c00); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+        .rank-platinum { background: linear-gradient(90deg, #e5e4e2, #b0c4de); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+
+        /* --- Главная (бренд) --- */
+        .main-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; text-align: center; }
+        .brand-title { font-size: 42px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; }
+        .brand-title .project { background: linear-gradient(90deg, #ff3b30, #ff8a00, #ff3b30); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gradientMove 3s linear infinite; }
+        .brand-title .profit { color: var(--text); }
+        .brand-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+        @keyframes gradientMove { to { background-position: 200% center; } }
+
+        /* --- Меню --- */
+        .nav-container { position: fixed; bottom: 24px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 100; }
+        .glass-nav { display: flex; justify-content: space-between; align-items: center; background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 40px; padding: 8px 12px; width: 88%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); position: relative; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 55px; border-radius: 50%; position: relative; z-index: 2; cursor: pointer; transition: transform 0.2s; gap: 4px; }
         .nav-item:active { transform: scale(0.9); }
-
-        .nav-item svg {
-            width: 22px; height: 22px;
-            fill: none;
-            stroke: #666666;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            transition: stroke 0.3s;
-        }
-
-        .nav-item span {
-            font-size: 10px;
-            color: #666666;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
+        .nav-item svg { width: 22px; height: 22px; fill: none; stroke: #666666; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.3s; }
+        .nav-item span { font-size: 10px; color: #666666; font-weight: 500; transition: color 0.3s; }
         .nav-item.active svg { stroke: var(--accent); }
         .nav-item.active span { color: var(--accent); }
-
-        /* Ползунок */
-        .slider {
-            position: absolute;
-            width: 60px;
-            height: 55px;
-            background: rgba(255, 59, 48, 0.1);
-            border-radius: 30px;
-            top: 8px;
-            left: 12px;
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s;
-            z-index: 1;
-            opacity: 0;
-            border: 1px solid rgba(255, 59, 48, 0.2);
-        }
-
+        .slider { position: absolute; width: 60px; height: 55px; background: rgba(255, 59, 48, 0.1); border-radius: 30px; top: 8px; left: 12px; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s; z-index: 1; opacity: 0; border: 1px solid rgba(255, 59, 48, 0.2); }
         .slider.ready { opacity: 1; }
-
     </style>
 </head>
 <body>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        tg.ready(); tg.expand();
         try { if (tg.isVersionAtLeast('8.0')) tg.requestFullscreen(); } catch(e) {}
-        tg.setHeaderColor('#0a0a0a');
-        tg.setBackgroundColor('#0a0a0a');
+        tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a');
+
+        // Имитация данных пользователя (в будущем придет с сервера)
+        const currentUser = {
+            id: 123,
+            name: tg.initDataUnsafe?.user?.first_name || "Иван",
+            score: 1500,
+            rank: "gold" // bronze, silver, gold, platinum
+        };
+
+        // Имитация таблицы лидеров
+        const leaderboard = [
+            { name: "Алексей", score: 4200, rank: "platinum" },
+            { name: "Мария", score: 3100, rank: "gold" },
+            { name: "Дмитрий", score: 2800, rank: "gold" },
+            { name: "Елена", score: 1900, rank: "silver" },
+            { name: "Сергей", score: 1200, rank: "bronze" }
+        ];
     </script>
 
-    <!-- Фон -->
-    <svg class="bg-lines" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <pattern id="diagonalHatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <line x1="0" y1="0" x2="0" y2="40" stroke="#ffffff" stroke-width="1" />
-            </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#diagonalHatch)" />
-        <circle cx="10%" cy="20%" r="150" stroke="#ffffff" stroke-width="1" fill="none" />
-        <circle cx="90%" cy="80%" r="200" stroke="#ffffff" stroke-width="1" fill="none" />
-    </svg>
+    <svg class="bg-lines" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="diagonalHatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="40" stroke="#ffffff" stroke-width="1" /></pattern></defs><rect width="100%" height="100%" fill="url(#diagonalHatch)" /><circle cx="10%" cy="20%" r="150" stroke="#ffffff" stroke-width="1" fill="none" /><circle cx="90%" cy="80%" r="200" stroke="#ffffff" stroke-width="1" fill="none" /></svg>
     <div class="vignette"></div>
 
-    <!-- Контент страниц -->
     <div class="pages-container">
-        
         <!-- Профиль -->
         <div class="page" id="page-profile">
-            <div class="page-title">Профиль</div>
-            <div class="page-desc">Профиль 1 2 3 4</div>
+            <div class="profile-card">
+                <div class="avatar">?</div>
+                <div class="username rank-gold" id="profile-name">Загрузка...</div>
+                <div class="user-rank-badge" id="profile-rank">Gold</div>
+                <div class="privileges-list" id="profile-privileges">
+                    <h4>Привилегии ранга</h4>
+                    <ul>
+                        <li>Доступ к закрытым новостям</li>
+                        <li>Уникальный градиент ника</li>
+                        <li>Ранний доступ к функциям</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
-        <!-- Главная -->
+        <!-- Главная (Бренд + Таблица лидеров) -->
         <div class="page active" id="page-main">
-            <div class="main-brand">
+            <div class="main-brand" style="height: auto; padding-top: 20px; margin-bottom: 20px;">
                 <div class="brand-title">
                     <span class="project">PROJECT</span><br>
                     <span class="profit">PROFIT</span>
                 </div>
                 <div class="brand-subtitle">продвижение начинается с нас</div>
             </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <!-- Сюда вставится таблица -->
+            </div>
         </div>
 
         <!-- Новости -->
         <div class="page" id="page-news">
-            <div class="page-title">Новости</div>
-            <div class="page-desc">Новости 1 2 3 4</div>
+            <h2>Новости</h2>
+            <p style="color: #666; margin-top: 10px;">Скоро здесь появится контент.</p>
         </div>
-
     </div>
 
-    <!-- Меню -->
     <div class="nav-container">
         <div class="glass-nav" id="nav">
             <div class="slider" id="slider"></div>
-
-            <!-- Профиль -->
             <div class="nav-item" onclick="changeTab(0, this)">
-                <svg viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>Профиль</span>
             </div>
-
-            <!-- Главная (Активна по умолчанию) -->
             <div class="nav-item active" onclick="changeTab(1, this)">
-                <svg viewBox="0 0 24 24">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span>Главная</span>
             </div>
-
-            <!-- Новости -->
             <div class="nav-item" onclick="changeTab(2, this)">
-                <svg viewBox="0 0 24 24">
-                    <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path>
-                    <path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path>
-                </svg>
+                <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>
                 <span>Новости</span>
             </div>
         </div>
     </div>
 
     <script>
+        // --- ЛОГИКА ---
         const slider = document.getElementById('slider');
         const navItems = document.querySelectorAll('.nav-item');
         const pages = document.querySelectorAll('.page');
         let stepWidth = 0;
-        let currentIndex = 1; // Главная страница открыта по умолчанию
+        let currentIndex = 1;
+
+        // Заполнение профиля
+        document.getElementById('profile-name').textContent = currentUser.name;
+        document.getElementById('profile-name').className = `username rank-${currentUser.rank}`;
+        document.getElementById('profile-rank').textContent = currentUser.rank.toUpperCase();
+
+        // Заполнение таблицы лидеров
+        const lbList = document.getElementById('leaderboard-list');
+        leaderboard.forEach((user, index) => {
+            const item = document.createElement('div');
+            item.className = 'leaderboard-item';
+            const rankClass = index < 3 ? `top-${index + 1}` : '';
+            item.innerHTML = `
+                <div class="lb-rank ${rankClass}">${index + 1}</div>
+                <div class="lb-name rank-${user.rank}">${user.name}</div>
+                <div class="lb-score">${user.score}</div>
+            `;
+            lbList.appendChild(item);
+        });
 
         function calculateStepWidth() {
             if (navItems.length < 2) return;
@@ -327,41 +254,27 @@
         }
 
         function changeTab(index, element) {
-            // Меняем активный класс в меню
             navItems.forEach(item => item.classList.remove('active'));
             element.classList.add('active');
-
-            // Двигаем ползунок
             const offset = stepWidth * index;
             slider.style.transform = `translateX(${offset}px)`;
-
-            // Переключаем страницы
             pages.forEach(page => page.classList.remove('active'));
             if (index === 0) document.getElementById('page-profile').classList.add('active');
             if (index === 1) {
                 const mainPage = document.getElementById('page-main');
                 mainPage.classList.add('active');
-                // Перезапускаем анимацию текста
                 const brand = mainPage.querySelector('.main-brand');
-                brand.style.animation = 'none';
-                brand.offsetHeight; /* trigger reflow */
-                brand.style.animation = null;
-                const sub = mainPage.querySelector('.brand-subtitle');
-                sub.style.animation = 'none';
-                sub.offsetHeight;
-                sub.style.animation = null;
+                brand.style.animation = 'none'; brand.offsetHeight; brand.style.animation = null;
             }
             if (index === 2) document.getElementById('page-news').classList.add('active');
         }
 
         window.addEventListener('load', () => {
             calculateStepWidth();
-            // Ставим ползунок на "Главную" при загрузке
             const offset = stepWidth * 1;
             slider.style.transform = `translateX(${offset}px)`;
             slider.classList.add('ready');
         });
-
         window.addEventListener('resize', () => {
             calculateStepWidth();
             const offset = stepWidth * currentIndex;
