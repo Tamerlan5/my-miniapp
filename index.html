@@ -14,8 +14,6 @@
             --glass-bg: rgba(25, 25, 25, 0.65);
             --glass-border: rgba(255, 255, 255, 0.08);
             --card-bg: #161616;
-            /* Переменная для безопасного отступа сверху (по умолчанию 40px) */
-            --tg-safe-area: 40px; 
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -32,14 +30,14 @@
         .bg-lines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03; pointer-events: none; }
         .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, #000000 120%); pointer-events: none; z-index: 0; }
 
-        /* Добавляем отступ сверху ко всем страницам */
+        /* Жесткий отступ сверху, чтобы не залезать под кнопки Telegram */
         .pages-container { 
             position: relative; 
             z-index: 1; 
             width: 100%; 
             min-height: 100vh; 
-            padding-top: var(--tg-safe-area); /* Отступ сверху */
-            padding-bottom: 110px; 
+            padding-top: 85px; 
+            padding-bottom: 120px; /* Увеличенный отступ снизу */
         }
         
         .page { display: none; flex-direction: column; align-items: center; padding: 10px 20px 30px; width: 100%; min-height: 100vh; animation: fadeIn 0.4s ease forwards; }
@@ -160,7 +158,16 @@
         @keyframes gradientMove { to { background-position: 200% center; } }
 
         /* --- Меню --- */
-        .nav-container { position: fixed; bottom: 24px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 100; }
+        .nav-container { 
+            position: fixed; 
+            /* Добавляем безопасный отступ снизу для iPhone */
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px)); 
+            left: 0; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            z-index: 100; 
+        }
         .glass-nav { display: flex; justify-content: space-between; align-items: center; background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 40px; padding: 8px 12px; width: 88%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); position: relative; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 55px; border-radius: 50%; position: relative; z-index: 2; cursor: pointer; transition: transform 0.2s; gap: 4px; }
         .nav-item:active { transform: scale(0.9); }
@@ -179,10 +186,6 @@
         tg.ready(); tg.expand();
         try { if (tg.isVersionAtLeast('8.0')) tg.requestFullscreen(); } catch(e) {}
         tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a');
-
-        // Высчитываем безопасный отступ сверху (высота панели Telegram + запас)
-        const safeAreaTop = tg.viewportStableHeight ? (window.innerHeight - tg.viewportStableHeight) + 10 : 40;
-        document.documentElement.style.setProperty('--tg-safe-area', `${safeAreaTop}px`);
 
         const currentUser = {
             name: tg.initDataUnsafe?.user?.first_name || "Сотрудник",
