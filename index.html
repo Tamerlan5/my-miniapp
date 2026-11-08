@@ -36,17 +36,19 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- Стили для Профиля и Лидеров --- */
-        .profile-card {
+        /* --- Общие стили --- */
+        h2 { font-size: 24px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .card {
             background: var(--card-bg);
             border-radius: 20px;
             padding: 24px;
             width: 100%;
             max-width: 400px;
             border: 1px solid var(--glass-border);
-            text-align: center;
             margin-bottom: 20px;
         }
+
+        /* --- Профиль --- */
         .avatar {
             width: 80px; height: 80px;
             border-radius: 50%;
@@ -61,50 +63,76 @@
             font-weight: 800;
             margin-bottom: 4px;
             display: inline-block;
+            text-align: center;
+            width: 100%;
         }
         .user-rank-badge {
-            display: inline-block;
-            padding: 4px 12px;
+            display: block;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 16px;
+            margin: 0 auto 16px;
             background: rgba(255,255,255,0.1);
+            width: fit-content;
         }
-        .privileges-list {
-            text-align: left;
-            background: rgba(255,255,255,0.03);
+        
+        /* --- Форма (Главная) --- */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
+        .form-group input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .form-group input:focus { border-color: var(--accent); }
+        
+        .btn-submit {
+            width: 100%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
             border-radius: 12px;
             padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: opacity 0.2s;
         }
-        .privileges-list h4 { margin-bottom: 8px; font-size: 14px; color: var(--text-muted); text-transform: uppercase; }
-        .privileges-list ul { list-style: none; }
-        .privileges-list li { font-size: 14px; margin-bottom: 6px; padding-left: 18px; position: relative; }
-        .privileges-list li::before { content: "•"; color: var(--accent); position: absolute; left: 0; }
+        .btn-submit:active { opacity: 0.8; }
 
-        .leaderboard-list {
-            width: 100%;
-            max-width: 400px;
-            background: var(--card-bg);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
-        }
-        .leaderboard-item {
+        .recent-list { margin-top: 24px; width: 100%; max-width: 400px; }
+        .recent-list h3 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
+        .recent-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 14px 18px;
-            border-bottom: 1px solid #222;
         }
-        .leaderboard-item:last-child { border-bottom: none; }
-        .lb-rank { font-size: 16px; font-weight: bold; width: 30px; color: #555; }
-        .lb-rank.top-1 { color: #ffd700; }
-        .lb-rank.top-2 { color: #c0c0c0; }
-        .lb-rank.top-3 { color: #cd7f32; }
-        .lb-name { flex: 1; font-size: 16px; font-weight: 600; }
-        .lb-score { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+        .recent-item .info { display: flex; flex-direction: column; gap: 4px; }
+        .recent-item .name { font-weight: 600; font-size: 15px; }
+        .recent-item .date { font-size: 11px; color: var(--text-muted); }
+        .recent-item .count {
+            background: rgba(255, 59, 48, 0.15);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+        }
 
         /* --- Градиенты для рангов --- */
         .rank-bronze { background: linear-gradient(90deg, #cd7f32, #a0522d); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
@@ -113,11 +141,11 @@
         .rank-platinum { background: linear-gradient(90deg, #e5e4e2, #b0c4de); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
 
         /* --- Главная (бренд) --- */
-        .main-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; text-align: center; }
-        .brand-title { font-size: 42px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; }
+        .main-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px; text-align: center; width: 100%; }
+        .brand-title { font-size: 36px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; }
         .brand-title .project { background: linear-gradient(90deg, #ff3b30, #ff8a00, #ff3b30); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gradientMove 3s linear infinite; }
         .brand-title .profit { color: var(--text); }
-        .brand-subtitle { font-size: 14px; color: var(--text-muted); font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+        .brand-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
         @keyframes gradientMove { to { background-position: 200% center; } }
 
         /* --- Меню --- */
@@ -141,22 +169,10 @@
         try { if (tg.isVersionAtLeast('8.0')) tg.requestFullscreen(); } catch(e) {}
         tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a');
 
-        // Имитация данных пользователя (в будущем придет с сервера)
         const currentUser = {
-            id: 123,
-            name: tg.initDataUnsafe?.user?.first_name || "Иван",
-            score: 1500,
-            rank: "gold" // bronze, silver, gold, platinum
+            name: tg.initDataUnsafe?.user?.first_name || "Сотрудник",
+            rank: "gold"
         };
-
-        // Имитация таблицы лидеров
-        const leaderboard = [
-            { name: "Алексей", score: 4200, rank: "platinum" },
-            { name: "Мария", score: 3100, rank: "gold" },
-            { name: "Дмитрий", score: 2800, rank: "gold" },
-            { name: "Елена", score: 1900, rank: "silver" },
-            { name: "Сергей", score: 1200, rank: "bronze" }
-        ];
     </script>
 
     <svg class="bg-lines" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="diagonalHatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="40" stroke="#ffffff" stroke-width="1" /></pattern></defs><rect width="100%" height="100%" fill="url(#diagonalHatch)" /><circle cx="10%" cy="20%" r="150" stroke="#ffffff" stroke-width="1" fill="none" /><circle cx="90%" cy="80%" r="200" stroke="#ffffff" stroke-width="1" fill="none" /></svg>
@@ -165,39 +181,58 @@
     <div class="pages-container">
         <!-- Профиль -->
         <div class="page" id="page-profile">
-            <div class="profile-card">
+            <div class="card" style="text-align: center;">
                 <div class="avatar">?</div>
                 <div class="username rank-gold" id="profile-name">Загрузка...</div>
-                <div class="user-rank-badge" id="profile-rank">Gold</div>
-                <div class="privileges-list" id="profile-privileges">
-                    <h4>Привилегии ранга</h4>
-                    <ul>
-                        <li>Доступ к закрытым новостям</li>
-                        <li>Уникальный градиент ника</li>
-                        <li>Ранний доступ к функциям</li>
-                    </ul>
+                <div class="user-rank-badge" id="profile-rank">GOLD</div>
+                <div style="text-align: left; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-top: 10px;">
+                    <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">Моя статистика</h4>
+                    <p style="font-size: 14px; display: flex; justify-content: space-between;">Клиентов обработано: <b style="color: var(--accent);" id="my-total">0</b></p>
                 </div>
             </div>
         </div>
 
-        <!-- Главная (Бренд + Таблица лидеров) -->
+        <!-- Главная (Форма ввода) -->
         <div class="page active" id="page-main">
-            <div class="main-brand" style="height: auto; padding-top: 20px; margin-bottom: 20px;">
+            <div class="main-brand">
                 <div class="brand-title">
                     <span class="project">PROJECT</span><br>
                     <span class="profit">PROFIT</span>
                 </div>
-                <div class="brand-subtitle">продвижение начинается с нас</div>
+                <div class="brand-subtitle">CRM для команды</div>
             </div>
-            <div class="leaderboard-list" id="leaderboard-list">
-                <!-- Сюда вставится таблица -->
+
+            <div class="card">
+                <h2 style="font-size: 18px; margin-bottom: 16px;">Новая запись</h2>
+                <div class="form-group">
+                    <label>Юзернейм клиента</label>
+                    <input type="text" id="input-username" placeholder="@username" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Количество мемберов</label>
+                    <input type="number" id="input-count" placeholder="0" min="1" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Дата</label>
+                    <input type="text" id="input-date" readonly style="opacity: 0.7;">
+                </div>
+                <button class="btn-submit" onclick="addRecord()">Зафиксировать</button>
+            </div>
+
+            <div class="recent-list">
+                <h3>Последние записи</h3>
+                <div id="recent-container">
+                    <!-- Сюда будут падать записи -->
+                </div>
             </div>
         </div>
 
-        <!-- Новости -->
+        <!-- Новости (В будущем - общая база) -->
         <div class="page" id="page-news">
-            <h2>Новости</h2>
-            <p style="color: #666; margin-top: 10px;">Скоро здесь появится контент.</p>
+            <h2>Общая база</h2>
+            <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-top: 10px;">
+                Здесь будет отображаться общая статистика команды и рейтинг сотрудников (после подключения сервера).
+            </p>
         </div>
     </div>
 
@@ -210,11 +245,11 @@
             </div>
             <div class="nav-item active" onclick="changeTab(1, this)">
                 <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span>Главная</span>
+                <span>Работа</span>
             </div>
             <div class="nav-item" onclick="changeTab(2, this)">
                 <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>
-                <span>Новости</span>
+                <span>База</span>
             </div>
         </div>
     </div>
@@ -227,25 +262,14 @@
         let stepWidth = 0;
         let currentIndex = 1;
 
-        // Заполнение профиля
+        // Устанавливаем имя в профиле
         document.getElementById('profile-name').textContent = currentUser.name;
-        document.getElementById('profile-name').className = `username rank-${currentUser.rank}`;
-        document.getElementById('profile-rank').textContent = currentUser.rank.toUpperCase();
 
-        // Заполнение таблицы лидеров
-        const lbList = document.getElementById('leaderboard-list');
-        leaderboard.forEach((user, index) => {
-            const item = document.createElement('div');
-            item.className = 'leaderboard-item';
-            const rankClass = index < 3 ? `top-${index + 1}` : '';
-            item.innerHTML = `
-                <div class="lb-rank ${rankClass}">${index + 1}</div>
-                <div class="lb-name rank-${user.rank}">${user.name}</div>
-                <div class="lb-score">${user.score}</div>
-            `;
-            lbList.appendChild(item);
-        });
+        // Устанавливаем сегодняшнюю дату в форму
+        const today = new Date().toLocaleDateString('ru-RU');
+        document.getElementById('input-date').value = today;
 
+        // Функция смены вкладок
         function calculateStepWidth() {
             if (navItems.length < 2) return;
             const firstCenter = navItems[0].offsetLeft + navItems[0].offsetWidth / 2;
@@ -269,12 +293,80 @@
             if (index === 2) document.getElementById('page-news').classList.add('active');
         }
 
+        // --- СОХРАНЕНИЕ ДАННЫХ (LocalStorage) ---
+        // Загружаем записи при старте
+        let records = JSON.parse(localStorage.getItem('profit_records')) || [];
+
+        function renderRecords() {
+            const container = document.getElementById('recent-container');
+            container.innerHTML = '';
+            
+            // Общая сумма для профиля
+            let totalCount = 0;
+
+            // Выводим последние 5 записей
+            records.slice(0, 5).forEach(rec => {
+                totalCount += parseInt(rec.count);
+                const div = document.createElement('div');
+                div.className = 'recent-item';
+                div.innerHTML = `
+                    <div class="info">
+                        <span class="name">${rec.username}</span>
+                        <span class="date">${rec.date}</span>
+                    </div>
+                    <div class="count">${rec.count} чел.</div>
+                `;
+                container.appendChild(div);
+            });
+
+            // Обновляем статистику в профиле (считаем по всем записям)
+            let allTotal = records.reduce((sum, rec) => sum + parseInt(rec.count), 0);
+            document.getElementById('my-total').textContent = allTotal;
+        }
+
+        function addRecord() {
+            const usernameInput = document.getElementById('input-username');
+            const countInput = document.getElementById('input-count');
+            
+            const username = usernameInput.value.trim();
+            const count = countInput.value.trim();
+            const date = document.getElementById('input-date').value;
+
+            if (!username || !count || count <= 0) {
+                tg.showAlert("Пожалуйста, заполните все поля корректно.");
+                return;
+            }
+
+            // Создаем запись
+            const newRecord = { username, count, date };
+            
+            // Добавляем в начало массива
+            records.unshift(newRecord);
+            
+            // Сохраняем в память телефона
+            localStorage.setItem('profit_records', JSON.stringify(records));
+
+            // Очищаем поля
+            usernameInput.value = '';
+            countInput.value = '';
+
+            // Обновляем список и статистику
+            renderRecords();
+
+            // Виброотклик и уведомление
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert("Запись успешно добавлена!");
+        }
+
+        // Инициализация
         window.addEventListener('load', () => {
             calculateStepWidth();
             const offset = stepWidth * 1;
             slider.style.transform = `translateX(${offset}px)`;
             slider.classList.add('ready');
+            renderRecords(); // Показываем записи
         });
+
         window.addEventListener('resize', () => {
             calculateStepWidth();
             const offset = stepWidth * currentIndex;
