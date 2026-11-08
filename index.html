@@ -30,126 +30,71 @@
         .bg-lines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03; pointer-events: none; }
         .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, #000000 120%); pointer-events: none; z-index: 0; }
 
-        /* Жесткий отступ сверху, чтобы не залезать под кнопки Telegram */
-        .pages-container { 
-            position: relative; 
-            z-index: 1; 
-            width: 100%; 
-            min-height: 100vh; 
-            padding-top: 85px; 
-            padding-bottom: 120px; /* Увеличенный отступ снизу */
-        }
-        
+        .pages-container { position: relative; z-index: 1; width: 100%; min-height: 100vh; padding-top: 85px; padding-bottom: 120px; }
         .page { display: none; flex-direction: column; align-items: center; padding: 10px 20px 30px; width: 100%; min-height: 100vh; animation: fadeIn 0.4s ease forwards; }
         .page.active { display: flex; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- Общие стили --- */
         h2 { font-size: 24px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 24px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid var(--glass-border);
-            margin-bottom: 20px;
-        }
+        .card { background: var(--card-bg); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; border: 1px solid var(--glass-border); margin-bottom: 20px; }
 
         /* --- Профиль --- */
-        .avatar {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: #333;
-            margin: 0 auto 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px; font-weight: bold; color: #555;
-            border: 2px solid #444;
+        .avatar { 
+            width: 80px; height: 80px; border-radius: 50%; background: #333; 
+            margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; 
+            font-size: 32px; font-weight: bold; color: #fff; border: 2px solid #444;
+            background-size: cover; background-position: center;
         }
-        .username {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 4px;
-            display: inline-block;
-            text-align: center;
-            width: 100%;
-        }
-        .user-rank-badge {
-            display: block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0 auto 16px;
-            background: rgba(255,255,255,0.1);
-            width: fit-content;
+        .username { font-size: 24px; font-weight: 800; margin-bottom: 4px; display: inline-block; text-align: center; width: 100%; }
+        .user-rank-badge { 
+            display: block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 0.5px; margin: 0 auto 16px; 
+            background: rgba(255,255,255,0.1); width: fit-content; 
         }
         
-        /* --- Форма (Главная) --- */
+        .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-row span:first-child { color: var(--text-muted); }
+        .stat-row span:last-child { font-weight: 700; color: var(--accent); }
+
+        /* --- Форма --- */
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
         .form-group input {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 14px;
-            color: var(--text);
-            font-size: 16px;
-            outline: none;
-            transition: border 0.3s;
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; padding: 14px; color: var(--text); font-size: 16px; outline: none; transition: border 0.3s;
         }
         .form-group input:focus { border-color: var(--accent); }
         
         .btn-submit {
-            width: 100%;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 8px;
-            transition: opacity 0.2s;
+            width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 12px;
+            padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: opacity 0.2s;
         }
         .btn-submit:active { opacity: 0.8; }
 
         .recent-list { margin-top: 24px; width: 100%; max-width: 400px; }
         .recent-list h3 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
-        .recent-item {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .recent-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .recent-item .info { display: flex; flex-direction: column; gap: 4px; }
         .recent-item .name { font-weight: 600; font-size: 15px; }
         .recent-item .date { font-size: 11px; color: var(--text-muted); }
-        .recent-item .count {
-            background: rgba(255, 59, 48, 0.15);
-            color: var(--accent);
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-        }
+        .recent-item .count { background: rgba(255, 59, 48, 0.15); color: var(--accent); padding: 4px 10px; border-radius: 10px; font-weight: 700; font-size: 14px; }
 
-        /* --- Градиенты для рангов --- */
-        .rank-bronze { background: linear-gradient(90deg, #cd7f32, #a0522d); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
-        .rank-silver { background: linear-gradient(90deg, #e0e0e0, #a0a0a0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
-        .rank-gold { background: linear-gradient(90deg, #ffd700, #ff8c00); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
-        .rank-platinum { background: linear-gradient(90deg, #e5e4e2, #b0c4de); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+        /* --- Градиенты рангов --- */
+        .rank-gray { color: #888888; } /* Начинающий */
+        .rank-blue { background: linear-gradient(90deg, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Батя */
+        .rank-red { background: linear-gradient(90deg, #ef4444, #ff8a00); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Со стажем */
+        .rank-green { background: linear-gradient(90deg, #22c55e, #10b981); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Профи */
+        .rank-pink { background: linear-gradient(90deg, #ec4899, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Старший менеджер */
 
-        /* --- Главная (бренд) --- */
+        .badge-gray { background: rgba(136, 136, 136, 0.2); color: #888888; }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+
+        /* --- Главная --- */
         .main-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px; text-align: center; width: 100%; }
         .brand-title { font-size: 36px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; }
         .brand-title .project { background: linear-gradient(90deg, #ff3b30, #ff8a00, #ff3b30); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gradientMove 3s linear infinite; }
@@ -158,16 +103,7 @@
         @keyframes gradientMove { to { background-position: 200% center; } }
 
         /* --- Меню --- */
-        .nav-container { 
-            position: fixed; 
-            /* Добавляем безопасный отступ снизу для iPhone */
-            bottom: calc(24px + env(safe-area-inset-bottom, 0px)); 
-            left: 0; 
-            width: 100%; 
-            display: flex; 
-            justify-content: center; 
-            z-index: 100; 
-        }
+        .nav-container { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 0; width: 100%; display: flex; justify-content: center; z-index: 100; }
         .glass-nav { display: flex; justify-content: space-between; align-items: center; background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 40px; padding: 8px 12px; width: 88%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); position: relative; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 55px; border-radius: 50%; position: relative; z-index: 2; cursor: pointer; transition: transform 0.2s; gap: 4px; }
         .nav-item:active { transform: scale(0.9); }
@@ -187,9 +123,11 @@
         try { if (tg.isVersionAtLeast('8.0')) tg.requestFullscreen(); } catch(e) {}
         tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a');
 
+        const tgUser = tg.initDataUnsafe?.user;
         const currentUser = {
-            name: tg.initDataUnsafe?.user?.first_name || "Сотрудник",
-            rank: "gold"
+            name: tgUser?.first_name || "Сотрудник",
+            username: tgUser?.username || "",
+            photo: tgUser?.photo_url || null
         };
     </script>
 
@@ -200,17 +138,19 @@
         <!-- Профиль -->
         <div class="page" id="page-profile">
             <div class="card" style="text-align: center;">
-                <div class="avatar">?</div>
-                <div class="username rank-gold" id="profile-name">Загрузка...</div>
-                <div class="user-rank-badge" id="profile-rank">GOLD</div>
-                <div style="text-align: left; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-top: 10px;">
+                <div class="avatar" id="profile-avatar"></div>
+                <div class="username" id="profile-name">Загрузка...</div>
+                <div class="user-rank-badge" id="profile-rank-badge">ЗАГРУЗКА</div>
+                
+                <div style="text-align: left; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-top: 16px;">
                     <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">Моя статистика</h4>
-                    <p style="font-size: 14px; display: flex; justify-content: space-between;">Клиентов обработано: <b style="color: var(--accent);" id="my-total">0</b></p>
+                    <div class="stat-row"><span>Клиентов обработано:</span> <span id="stat-clients">0</span></div>
+                    <div class="stat-row"><span>Общий профит (20%):</span> <span id="stat-profit">0 ₽</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Главная (Форма ввода) -->
+        <!-- Главная (Форма) -->
         <div class="page active" id="page-main">
             <div class="main-brand">
                 <div class="brand-title">
@@ -231,6 +171,10 @@
                     <input type="number" id="input-count" placeholder="0" min="1" autocomplete="off">
                 </div>
                 <div class="form-group">
+                    <label>Стоимость (в рублях)</label>
+                    <input type="number" id="input-cost" placeholder="0" min="0" autocomplete="off">
+                </div>
+                <div class="form-group">
                     <label>Дата</label>
                     <input type="text" id="input-date" readonly style="opacity: 0.7;">
                 </div>
@@ -239,17 +183,15 @@
 
             <div class="recent-list">
                 <h3>Последние записи</h3>
-                <div id="recent-container">
-                    <!-- Сюда будут падать записи -->
-                </div>
+                <div id="recent-container"></div>
             </div>
         </div>
 
-        <!-- Новости (В будущем - общая база) -->
+        <!-- База -->
         <div class="page" id="page-news">
             <h2>Общая база</h2>
             <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-top: 10px;">
-                Здесь будет отображаться общая статистика команды и рейтинг сотрудников (после подключения сервера).
+                Здесь будет отображаться общая статистика команды и рейтинг сотрудников.
             </p>
         </div>
     </div>
@@ -273,14 +215,53 @@
     </div>
 
     <script>
-        // --- ЛОГИКА ---
+        // --- ИНИЦИАЛИЗАЦИЯ ПРОФИЛЯ ---
+        document.getElementById('profile-name').textContent = currentUser.name;
+        
+        // Аватарка
+        const avatarDiv = document.getElementById('profile-avatar');
+        if (currentUser.photo) {
+            avatarDiv.style.backgroundImage = `url(${currentUser.photo})`;
+        } else {
+            avatarDiv.textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        // --- ЛОГИКА РАНГОВ ---
+        function getRankData(clientsCount) {
+            if (clientsCount >= 60) return { name: 'Старший менеджер', textClass: 'rank-pink', badgeClass: 'badge-pink' };
+            if (clientsCount >= 30) return { name: 'Профи', textClass: 'rank-green', badgeClass: 'badge-green' };
+            if (clientsCount >= 15) return { name: 'Со стажем', textClass: 'rank-red', badgeClass: 'badge-red' };
+            if (clientsCount >= 5) return { name: 'Батя', textClass: 'rank-blue', badgeClass: 'badge-blue' };
+            return { name: 'Начинающий', textClass: 'rank-gray', badgeClass: 'badge-gray' };
+        }
+
+        function updateProfileStats() {
+            // Считаем общее количество клиентов (сумма всех мемберов)
+            let totalClients = records.reduce((sum, rec) => sum + parseInt(rec.count), 0);
+            // Считаем общий профит (20% от суммы всех стоимостей)
+            let totalProfit = records.reduce((sum, rec) => sum + (parseInt(rec.cost) || 0) * 0.2, 0);
+
+            // Обновляем цифры
+            document.getElementById('stat-clients').textContent = totalClients;
+            document.getElementById('stat-profit').textContent = Math.round(totalProfit).toLocaleString('ru-RU') + ' ₽';
+
+            // Выдаем ранг
+            const rank = getRankData(totalClients);
+            
+            const nameElement = document.getElementById('profile-name');
+            nameElement.className = `username ${rank.textClass}`;
+            
+            const badgeElement = document.getElementById('profile-rank-badge');
+            badgeElement.textContent = rank.name.toUpperCase();
+            badgeElement.className = `user-rank-badge ${rank.badgeClass}`;
+        }
+
+        // --- ЛОГИКА МЕНЮ ---
         const slider = document.getElementById('slider');
         const navItems = document.querySelectorAll('.nav-item');
         const pages = document.querySelectorAll('.page');
         let stepWidth = 0;
         let currentIndex = 1;
-
-        document.getElementById('profile-name').textContent = currentUser.name;
 
         const today = new Date().toLocaleDateString('ru-RU');
         document.getElementById('input-date').value = today;
@@ -308,6 +289,7 @@
             if (index === 2) document.getElementById('page-news').classList.add('active');
         }
 
+        // --- РАБОТА С ЗАПИСЯМИ ---
         let records = JSON.parse(localStorage.getItem('profit_records')) || [];
 
         function renderRecords() {
@@ -320,36 +302,38 @@
                 div.innerHTML = `
                     <div class="info">
                         <span class="name">${rec.username}</span>
-                        <span class="date">${rec.date}</span>
+                        <span class="date">${rec.date} • ${rec.cost} ₽</span>
                     </div>
                     <div class="count">${rec.count} чел.</div>
                 `;
                 container.appendChild(div);
             });
 
-            let allTotal = records.reduce((sum, rec) => sum + parseInt(rec.count), 0);
-            document.getElementById('my-total').textContent = allTotal;
+            updateProfileStats(); // Обновляем профиль при каждом рендере
         }
 
         function addRecord() {
             const usernameInput = document.getElementById('input-username');
             const countInput = document.getElementById('input-count');
+            const costInput = document.getElementById('input-cost');
             
             const username = usernameInput.value.trim();
             const count = countInput.value.trim();
+            const cost = costInput.value.trim();
             const date = document.getElementById('input-date').value;
 
-            if (!username || !count || count <= 0) {
+            if (!username || !count || count <= 0 || !cost || cost <= 0) {
                 tg.showAlert("Пожалуйста, заполните все поля корректно.");
                 return;
             }
 
-            const newRecord = { username, count, date };
+            const newRecord = { username, count, cost, date };
             records.unshift(newRecord);
             localStorage.setItem('profit_records', JSON.stringify(records));
 
             usernameInput.value = '';
             countInput.value = '';
+            costInput.value = '';
 
             renderRecords();
 
