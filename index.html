@@ -14,6 +14,8 @@
             --glass-bg: rgba(25, 25, 25, 0.65);
             --glass-border: rgba(255, 255, 255, 0.08);
             --card-bg: #161616;
+            /* Переменная для безопасного отступа сверху (по умолчанию 40px) */
+            --tg-safe-area: 40px; 
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -30,8 +32,17 @@
         .bg-lines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03; pointer-events: none; }
         .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, #000000 120%); pointer-events: none; z-index: 0; }
 
-        .pages-container { position: relative; z-index: 1; width: 100%; min-height: 100vh; padding-bottom: 110px; }
-        .page { display: none; flex-direction: column; align-items: center; padding: 30px 20px; width: 100%; min-height: 100vh; animation: fadeIn 0.4s ease forwards; }
+        /* Добавляем отступ сверху ко всем страницам */
+        .pages-container { 
+            position: relative; 
+            z-index: 1; 
+            width: 100%; 
+            min-height: 100vh; 
+            padding-top: var(--tg-safe-area); /* Отступ сверху */
+            padding-bottom: 110px; 
+        }
+        
+        .page { display: none; flex-direction: column; align-items: center; padding: 10px 20px 30px; width: 100%; min-height: 100vh; animation: fadeIn 0.4s ease forwards; }
         .page.active { display: flex; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -169,6 +180,10 @@
         try { if (tg.isVersionAtLeast('8.0')) tg.requestFullscreen(); } catch(e) {}
         tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a');
 
+        // Высчитываем безопасный отступ сверху (высота панели Telegram + запас)
+        const safeAreaTop = tg.viewportStableHeight ? (window.innerHeight - tg.viewportStableHeight) + 10 : 40;
+        document.documentElement.style.setProperty('--tg-safe-area', `${safeAreaTop}px`);
+
         const currentUser = {
             name: tg.initDataUnsafe?.user?.first_name || "Сотрудник",
             rank: "gold"
@@ -262,14 +277,11 @@
         let stepWidth = 0;
         let currentIndex = 1;
 
-        // Устанавливаем имя в профиле
         document.getElementById('profile-name').textContent = currentUser.name;
 
-        // Устанавливаем сегодняшнюю дату в форму
         const today = new Date().toLocaleDateString('ru-RU');
         document.getElementById('input-date').value = today;
 
-        // Функция смены вкладок
         function calculateStepWidth() {
             if (navItems.length < 2) return;
             const firstCenter = navItems[0].offsetLeft + navItems[0].offsetWidth / 2;
@@ -293,20 +305,13 @@
             if (index === 2) document.getElementById('page-news').classList.add('active');
         }
 
-        // --- СОХРАНЕНИЕ ДАННЫХ (LocalStorage) ---
-        // Загружаем записи при старте
         let records = JSON.parse(localStorage.getItem('profit_records')) || [];
 
         function renderRecords() {
             const container = document.getElementById('recent-container');
             container.innerHTML = '';
             
-            // Общая сумма для профиля
-            let totalCount = 0;
-
-            // Выводим последние 5 записей
             records.slice(0, 5).forEach(rec => {
-                totalCount += parseInt(rec.count);
                 const div = document.createElement('div');
                 div.className = 'recent-item';
                 div.innerHTML = `
@@ -319,7 +324,6 @@
                 container.appendChild(div);
             });
 
-            // Обновляем статистику в профиле (считаем по всем записям)
             let allTotal = records.reduce((sum, rec) => sum + parseInt(rec.count), 0);
             document.getElementById('my-total').textContent = allTotal;
         }
@@ -337,34 +341,25 @@
                 return;
             }
 
-            // Создаем запись
             const newRecord = { username, count, date };
-            
-            // Добавляем в начало массива
             records.unshift(newRecord);
-            
-            // Сохраняем в память телефона
             localStorage.setItem('profit_records', JSON.stringify(records));
 
-            // Очищаем поля
             usernameInput.value = '';
             countInput.value = '';
 
-            // Обновляем список и статистику
             renderRecords();
 
-            // Виброотклик и уведомление
             tg.HapticFeedback.notificationOccurred('success');
             tg.showAlert("Запись успешно добавлена!");
         }
 
-        // Инициализация
         window.addEventListener('load', () => {
             calculateStepWidth();
             const offset = stepWidth * 1;
             slider.style.transform = `translateX(${offset}px)`;
             slider.classList.add('ready');
-            renderRecords(); // Показываем записи
+            renderRecords();
         });
 
         window.addEventListener('resize', () => {
