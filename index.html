@@ -144,7 +144,7 @@
                 
                 <div style="text-align: left; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-top: 16px;">
                     <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">Моя статистика</h4>
-                    <div class="stat-row"><span>Клиентов обработано:</span> <span id="stat-clients">0</span></div>
+                    <div class="stat-row"><span>Записей создано:</span> <span id="stat-records">0</span></div>
                     <div class="stat-row"><span>Общий профит (20%):</span> <span id="stat-profit">0 ₽</span></div>
                 </div>
             </div>
@@ -226,27 +226,28 @@
             avatarDiv.textContent = currentUser.name.charAt(0).toUpperCase();
         }
 
-        // --- ЛОГИКА РАНГОВ ---
-        function getRankData(clientsCount) {
-            if (clientsCount >= 60) return { name: 'Старший менеджер', textClass: 'rank-pink', badgeClass: 'badge-pink' };
-            if (clientsCount >= 30) return { name: 'Профи', textClass: 'rank-green', badgeClass: 'badge-green' };
-            if (clientsCount >= 15) return { name: 'Со стажем', textClass: 'rank-red', badgeClass: 'badge-red' };
-            if (clientsCount >= 5) return { name: 'Батя', textClass: 'rank-blue', badgeClass: 'badge-blue' };
+        // --- ЛОГИКА РАНГОВ (ПО КОЛИЧЕСТВУ ЗАПИСЕЙ) ---
+        function getRankData(recordsCount) {
+            if (recordsCount >= 60) return { name: 'Старший менеджер', textClass: 'rank-pink', badgeClass: 'badge-pink' };
+            if (recordsCount >= 30) return { name: 'Профи', textClass: 'rank-green', badgeClass: 'badge-green' };
+            if (recordsCount >= 15) return { name: 'Со стажем', textClass: 'rank-red', badgeClass: 'badge-red' };
+            if (recordsCount >= 5) return { name: 'Батя', textClass: 'rank-blue', badgeClass: 'badge-blue' };
             return { name: 'Начинающий', textClass: 'rank-gray', badgeClass: 'badge-gray' };
         }
 
         function updateProfileStats() {
-            // Считаем общее количество клиентов (сумма всех мемберов)
-            let totalClients = records.reduce((sum, rec) => sum + parseInt(rec.count), 0);
-            // Считаем общий профит (20% от суммы всех стоимостей)
+            // Количество созданных записей
+            let totalRecords = records.length;
+            
+            // Общий профит (20% от суммы всех стоимостей)
             let totalProfit = records.reduce((sum, rec) => sum + (parseInt(rec.cost) || 0) * 0.2, 0);
 
             // Обновляем цифры
-            document.getElementById('stat-clients').textContent = totalClients;
+            document.getElementById('stat-records').textContent = totalRecords;
             document.getElementById('stat-profit').textContent = Math.round(totalProfit).toLocaleString('ru-RU') + ' ₽';
 
-            // Выдаем ранг
-            const rank = getRankData(totalClients);
+            // Выдаем ранг на основе КОЛИЧЕСТВА ЗАПИСЕЙ
+            const rank = getRankData(totalRecords);
             
             const nameElement = document.getElementById('profile-name');
             nameElement.className = `username ${rank.textClass}`;
