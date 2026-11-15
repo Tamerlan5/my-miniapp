@@ -1,360 +1,128 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PROJECT PROFIT</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: #0a0a0a;
-            --accent: #ff3b30;
-            --text: #ffffff;
-            --text-muted: #888888;
-            --glass-bg: rgba(25, 25, 25, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --card-bg: #161616;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text);
-            -ms-overflow-style: none; scrollbar-width: none;
-            overflow-y: scroll; overflow-x: hidden; min-height: 100vh;
-        }
-        body::-webkit-scrollbar { display: none; }
-
-        .bg-lines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03; pointer-events: none; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, #000000 120%); pointer-events: none; z-index: 0; }
-
-        .pages-container { position: relative; z-index: 1; width: 100%; min-height: 100vh; padding-top: 85px; padding-bottom: 120px; }
-        .page { display: none; flex-direction: column; align-items: center; padding: 10px 20px 30px; width: 100%; min-height: 100vh; animation: fadeIn 0.4s ease forwards; }
-        .page.active { display: flex; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h2 { font-size: 24px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .card { background: var(--card-bg); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; border: 1px solid var(--glass-border); margin-bottom: 20px; }
-
-        /* --- Профиль --- */
-        .avatar { 
-            width: 80px; height: 80px; border-radius: 50%; background: #333; 
-            margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; 
-            font-size: 32px; font-weight: bold; color: #fff; border: 2px solid #444;
-            background-size: cover; background-position: center;
-        }
-        .username { font-size: 24px; font-weight: 800; margin-bottom: 4px; display: inline-block; text-align: center; width: 100%; }
-        .user-rank-badge { 
-            display: block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 0.5px; margin: 0 auto 16px; 
-            background: rgba(255,255,255,0.1); width: fit-content; 
-        }
-        
-        .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .stat-row:last-child { border-bottom: none; }
-        .stat-row span:first-child { color: var(--text-muted); }
-        .stat-row span:last-child { font-weight: 700; color: var(--accent); }
-
-        /* --- Форма --- */
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
-        .form-group input {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; padding: 14px; color: var(--text); font-size: 16px; outline: none; transition: border 0.3s;
-        }
-        .form-group input:focus { border-color: var(--accent); }
-        
-        .btn-submit {
-            width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 12px;
-            padding: 16px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: opacity 0.2s;
-        }
-        .btn-submit:active { opacity: 0.8; }
-
-        .recent-list { margin-top: 24px; width: 100%; max-width: 400px; }
-        .recent-list h3 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
-        .recent-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .recent-item .info { display: flex; flex-direction: column; gap: 4px; }
-        .recent-item .name { font-weight: 600; font-size: 15px; }
-        .recent-item .date { font-size: 11px; color: var(--text-muted); }
-        .recent-item .count { background: rgba(255, 59, 48, 0.15); color: var(--accent); padding: 4px 10px; border-radius: 10px; font-weight: 700; font-size: 14px; }
-
-        /* --- Градиенты рангов --- */
-        .rank-gray { color: #888888; } /* Начинающий */
-        .rank-blue { background: linear-gradient(90deg, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Батя */
-        .rank-red { background: linear-gradient(90deg, #ef4444, #ff8a00); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Со стажем */
-        .rank-green { background: linear-gradient(90deg, #22c55e, #10b981); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Профи */
-        .rank-pink { background: linear-gradient(90deg, #ec4899, #f472b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; } /* Старший менеджер */
-
-        .badge-gray { background: rgba(136, 136, 136, 0.2); color: #888888; }
-        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-        .badge-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .badge-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-        .badge-pink { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
-
-        /* --- Главная --- */
-        .main-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px; text-align: center; width: 100%; }
-        .brand-title { font-size: 36px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; }
-        .brand-title .project { background: linear-gradient(90deg, #ff3b30, #ff8a00, #ff3b30); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gradientMove 3s linear infinite; }
-        .brand-title .profit { color: var(--text); }
-        .brand-subtitle { font-size: 12px; color: var(--text-muted); font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
-        @keyframes gradientMove { to { background-position: 200% center; } }
-
-        /* --- Меню --- */
-        .nav-container { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 0; width: 100%; display: flex; justify-content: center; z-index: 100; }
-        .glass-nav { display: flex; justify-content: space-between; align-items: center; background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 40px; padding: 8px 12px; width: 88%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); position: relative; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 60px; height: 55px; border-radius: 50%; position: relative; z-index: 2; cursor: pointer; transition: transform 0.2s; gap: 4px; }
-        .nav-item:active { transform: scale(0.9); }
-        .nav-item svg { width: 22px; height: 22px; fill: none; stroke: #666666; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.3s; }
-        .nav-item span { font-size: 10px; color: #666666; font-weight: 500; transition: color 0.3s; }
-        .nav-item.active svg { stroke: var(--accent); }
-        .nav-item.active span { color: var(--accent); }
-        .slider { position: absolute; width: 60px; height: 55px; background: rgba(255, 59, 48, 0.1); border-radius: 30px; top: 8px; left: 12px; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s; z-index: 1; opacity: 0; border: 1px solid rgba(255, 59, 48, 0.2); }
-        .slider.ready { opacity: 1; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Banana Tap 🍌</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready(); tg.expand();
-        try { if (tg.isVersionAtLeast('8.0')) tg.requestFullscreen(); } catch(e) {}
-        tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a');
-
-        const tgUser = tg.initDataUnsafe?.user;
-        const currentUser = {
-            name: tgUser?.first_name || "Сотрудник",
-            username: tgUser?.username || "",
-            photo: tgUser?.photo_url || null
-        };
-    </script>
-
-    <svg class="bg-lines" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="diagonalHatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="40" stroke="#ffffff" stroke-width="1" /></pattern></defs><rect width="100%" height="100%" fill="url(#diagonalHatch)" /><circle cx="10%" cy="20%" r="150" stroke="#ffffff" stroke-width="1" fill="none" /><circle cx="90%" cy="80%" r="200" stroke="#ffffff" stroke-width="1" fill="none" /></svg>
-    <div class="vignette"></div>
-
-    <div class="pages-container">
-        <!-- Профиль -->
-        <div class="page" id="page-profile">
-            <div class="card" style="text-align: center;">
-                <div class="avatar" id="profile-avatar"></div>
-                <div class="username" id="profile-name">Загрузка...</div>
-                <div class="user-rank-badge" id="profile-rank-badge">ЗАГРУЗКА</div>
-                
-                <div style="text-align: left; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-top: 16px;">
-                    <h4 style="margin-bottom: 8px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">Моя статистика</h4>
-                    <div class="stat-row"><span>Записей создано:</span> <span id="stat-records">0</span></div>
-                    <div class="stat-row"><span>Общий профит (20%):</span> <span id="stat-profit">0 ₽</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Главная (Форма) -->
-        <div class="page active" id="page-main">
-            <div class="main-brand">
-                <div class="brand-title">
-                    <span class="project">PROJECT</span><br>
-                    <span class="profit">PROFIT</span>
-                </div>
-                <div class="brand-subtitle">CRM для команды</div>
-            </div>
-
-            <div class="card">
-                <h2 style="font-size: 18px; margin-bottom: 16px;">Новая запись</h2>
-                <div class="form-group">
-                    <label>Юзернейм клиента</label>
-                    <input type="text" id="input-username" placeholder="@username" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label>Количество мемберов</label>
-                    <input type="number" id="input-count" placeholder="0" min="1" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label>Стоимость (в рублях)</label>
-                    <input type="number" id="input-cost" placeholder="0" min="0" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label>Дата</label>
-                    <input type="text" id="input-date" readonly style="opacity: 0.7;">
-                </div>
-                <button class="btn-submit" onclick="addRecord()">Зафиксировать</button>
-            </div>
-
-            <div class="recent-list">
-                <h3>Последние записи</h3>
-                <div id="recent-container"></div>
-            </div>
-        </div>
-
-        <!-- База -->
-        <div class="page" id="page-news">
-            <h2>Общая база</h2>
-            <p style="color: var(--text-muted); font-size: 14px; text-align: center; margin-top: 10px;">
-                Здесь будет отображаться общая статистика команды и рейтинг сотрудников.
-            </p>
-        </div>
+  <!-- Верхняя панель -->
+  <header class="topbar">
+    <div class="stat">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <span id="balance">0</span>
     </div>
-
-    <div class="nav-container">
-        <div class="glass-nav" id="nav">
-            <div class="slider" id="slider"></div>
-            <div class="nav-item" onclick="changeTab(0, this)">
-                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                <span>Профиль</span>
-            </div>
-            <div class="nav-item active" onclick="changeTab(1, this)">
-                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                <span>Работа</span>
-            </div>
-            <div class="nav-item" onclick="changeTab(2, this)">
-                <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"></path></svg>
-                <span>База</span>
-            </div>
-        </div>
+    <div class="stat">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      <span id="energy">1000/1000</span>
     </div>
+    <div class="stat">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
+      <span id="level">1</span>
+    </div>
+  </header>
 
-    <script>
-        // --- ИНИЦИАЛИЗАЦИЯ ПРОФИЛЯ ---
-        document.getElementById('profile-name').textContent = currentUser.name;
-        
-        // Аватарка
-        const avatarDiv = document.getElementById('profile-avatar');
-        if (currentUser.photo) {
-            avatarDiv.style.backgroundImage = `url(${currentUser.photo})`;
-        } else {
-            avatarDiv.textContent = currentUser.name.charAt(0).toUpperCase();
-        }
+  <!-- Контент страниц -->
+  <main id="app">
+    <!-- TAP -->
+    <section id="page-tap" class="page active">
+      <div class="tap-zone" id="tapZone">
+        <div class="banana" id="banana">
+          <svg viewBox="0 0 100 100">
+            <path d="M20 70 Q15 40 50 25 Q85 15 80 45 Q78 70 50 80 Q30 85 20 70 Z" fill="#FFD93B" stroke="#E0A800" stroke-width="3"/>
+            <path d="M50 25 Q55 20 60 25" stroke="#8B5E00" stroke-width="3" fill="none"/>
+          </svg>
+        </div>
+        <div class="tap-hint">Тапай по банану!</div>
+      </div>
+    </section>
 
-        // --- ЛОГИКА РАНГОВ (ПО КОЛИЧЕСТВУ ЗАПИСЕЙ) ---
-        function getRankData(recordsCount) {
-            if (recordsCount >= 60) return { name: 'Старший менеджер', textClass: 'rank-pink', badgeClass: 'badge-pink' };
-            if (recordsCount >= 30) return { name: 'Профи', textClass: 'rank-green', badgeClass: 'badge-green' };
-            if (recordsCount >= 15) return { name: 'Со стажем', textClass: 'rank-red', badgeClass: 'badge-red' };
-            if (recordsCount >= 5) return { name: 'Батя', textClass: 'rank-blue', badgeClass: 'badge-blue' };
-            return { name: 'Начинающий', textClass: 'rank-gray', badgeClass: 'badge-gray' };
-        }
+    <!-- BOOSTS -->
+    <section id="page-boosts" class="page">
+      <h2>Бусты</h2>
+      <div id="boostList" class="card-list"></div>
+    </section>
 
-        function updateProfileStats() {
-            // Количество созданных записей
-            let totalRecords = records.length;
-            
-            // Общий профит (20% от суммы всех стоимостей)
-            let totalProfit = records.reduce((sum, rec) => sum + (parseInt(rec.cost) || 0) * 0.2, 0);
+    <!-- TASKS -->
+    <section id="page-tasks" class="page">
+      <h2>Задания</h2>
+      <div id="taskList" class="card-list"></div>
+    </section>
 
-            // Обновляем цифры
-            document.getElementById('stat-records').textContent = totalRecords;
-            document.getElementById('stat-profit').textContent = Math.round(totalProfit).toLocaleString('ru-RU') + ' ₽';
+    <!-- FRIENDS -->
+    <section id="page-friends" class="page">
+      <h2>Друзья</h2>
+      <p class="muted">Пригласи друга и получи 5000 🍌</p>
+      <button class="btn primary" id="inviteBtn">Пригласить друга</button>
+      <div class="ref-box">
+        <span id="refLink">—</span>
+      </div>
+      <p class="muted">Приглашено: <b id="refCount">0</b></p>
+    </section>
 
-            // Выдаем ранг на основе КОЛИЧЕСТВА ЗАПИСЕЙ
-            const rank = getRankData(totalRecords);
-            
-            const nameElement = document.getElementById('profile-name');
-            nameElement.className = `username ${rank.textClass}`;
-            
-            const badgeElement = document.getElementById('profile-rank-badge');
-            badgeElement.textContent = rank.name.toUpperCase();
-            badgeElement.className = `user-rank-badge ${rank.badgeClass}`;
-        }
+    <!-- MINE / PASSIVE -->
+    <section id="page-mine" class="page">
+      <h2>Майнинг (пассивный доход)</h2>
+      <div id="mineList" class="card-list"></div>
+    </section>
 
-        // --- ЛОГИКА МЕНЮ ---
-        const slider = document.getElementById('slider');
-        const navItems = document.querySelectorAll('.nav-item');
-        const pages = document.querySelectorAll('.page');
-        let stepWidth = 0;
-        let currentIndex = 1;
+    <!-- SHOP -->
+    <section id="page-shop" class="page">
+      <h2>Магазин</h2>
+      <div id="shopList" class="card-list"></div>
+    </section>
 
-        const today = new Date().toLocaleDateString('ru-RU');
-        document.getElementById('input-date').value = today;
+    <!-- PROFILE -->
+    <section id="page-profile" class="page">
+      <h2>Профиль</h2>
+      <div class="profile-card">
+        <div class="avatar" id="avatar">🍌</div>
+        <div>
+          <div id="userName">Игрок</div>
+          <div class="muted" id="userId">—</div>
+        </div>
+      </div>
+      <button class="btn danger" id="resetBtn">Сбросить прогресс</button>
+    </section>
+  </main>
 
-        function calculateStepWidth() {
-            if (navItems.length < 2) return;
-            const firstCenter = navItems[0].offsetLeft + navItems[0].offsetWidth / 2;
-            const secondCenter = navItems[1].offsetLeft + navItems[1].offsetWidth / 2;
-            stepWidth = secondCenter - firstCenter;
-        }
+  <!-- Нижняя навигация -->
+  <nav class="bottomnav">
+    <button data-page="tap" class="nav-btn active">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+      <span>Тап</span>
+    </button>
+    <button data-page="boosts" class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      <span>Бусты</span>
+    </button>
+    <button data-page="tasks" class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      <span>Задания</span>
+    </button>
+    <button data-page="friends" class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Друзья</span>
+    </button>
+    <button data-page="mine" class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
+      <span>Майнинг</span>
+    </button>
+    <button data-page="shop" class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1z"/></svg>
+      <span>Магазин</span>
+    </button>
+    <button data-page="profile" class="nav-btn">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>Профиль</span>
+    </button>
+  </nav>
 
-        function changeTab(index, element) {
-            navItems.forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
-            const offset = stepWidth * index;
-            slider.style.transform = `translateX(${offset}px)`;
-            pages.forEach(page => page.classList.remove('active'));
-            if (index === 0) document.getElementById('page-profile').classList.add('active');
-            if (index === 1) {
-                const mainPage = document.getElementById('page-main');
-                mainPage.classList.add('active');
-                const brand = mainPage.querySelector('.main-brand');
-                brand.style.animation = 'none'; brand.offsetHeight; brand.style.animation = null;
-            }
-            if (index === 2) document.getElementById('page-news').classList.add('active');
-        }
+  <!-- Всплывающее уведомление -->
+  <div id="toast" class="toast"></div>
 
-        // --- РАБОТА С ЗАПИСЯМИ ---
-        let records = JSON.parse(localStorage.getItem('profit_records')) || [];
-
-        function renderRecords() {
-            const container = document.getElementById('recent-container');
-            container.innerHTML = '';
-            
-            records.slice(0, 5).forEach(rec => {
-                const div = document.createElement('div');
-                div.className = 'recent-item';
-                div.innerHTML = `
-                    <div class="info">
-                        <span class="name">${rec.username}</span>
-                        <span class="date">${rec.date} • ${rec.cost} ₽</span>
-                    </div>
-                    <div class="count">${rec.count} чел.</div>
-                `;
-                container.appendChild(div);
-            });
-
-            updateProfileStats(); // Обновляем профиль при каждом рендере
-        }
-
-        function addRecord() {
-            const usernameInput = document.getElementById('input-username');
-            const countInput = document.getElementById('input-count');
-            const costInput = document.getElementById('input-cost');
-            
-            const username = usernameInput.value.trim();
-            const count = countInput.value.trim();
-            const cost = costInput.value.trim();
-            const date = document.getElementById('input-date').value;
-
-            if (!username || !count || count <= 0 || !cost || cost <= 0) {
-                tg.showAlert("Пожалуйста, заполните все поля корректно.");
-                return;
-            }
-
-            const newRecord = { username, count, cost, date };
-            records.unshift(newRecord);
-            localStorage.setItem('profit_records', JSON.stringify(records));
-
-            usernameInput.value = '';
-            countInput.value = '';
-            costInput.value = '';
-
-            renderRecords();
-
-            tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Запись успешно добавлена!");
-        }
-
-        window.addEventListener('load', () => {
-            calculateStepWidth();
-            const offset = stepWidth * 1;
-            slider.style.transform = `translateX(${offset}px)`;
-            slider.classList.add('ready');
-            renderRecords();
-        });
-
-        window.addEventListener('resize', () => {
-            calculateStepWidth();
-            const offset = stepWidth * currentIndex;
-            slider.style.transform = `translateX(${offset}px)`;
-        });
-    </script>
+  <script src="app.js"></script>
 </body>
 </html>
