@@ -70,6 +70,7 @@ function fmt(n) {
 
 function toast(msg) {
   const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._tm);
@@ -78,11 +79,17 @@ function toast(msg) {
 
 /* ============ TOPBAR ============ */
 function renderTopbar() {
-  document.getElementById('balance').textContent = fmt(state.balance);
-  document.getElementById('energy').textContent = `${Math.floor(state.energy)}/${state.maxEnergy}`;
-  document.getElementById('level').textContent = state.level;
-  document.getElementById('userName').textContent = state.userName;
-  document.getElementById('userId').textContent = state.userId ? 'ID: ' + state.userId : 'Гость';
+  const balEl = document.getElementById('balance');
+  const enEl = document.getElementById('energy');
+  const lvlEl = document.getElementById('level');
+  const userEl = document.getElementById('userName');
+  const idEl = document.getElementById('userId');
+
+  if (balEl) balEl.textContent = fmt(state.balance);
+  if (enEl) enEl.textContent = `${Math.floor(state.energy)}/${state.maxEnergy}`;
+  if (lvlEl) lvlEl.textContent = state.level;
+  if (userEl) userEl.textContent = state.userName;
+  if (idEl) idEl.textContent = state.userId ? 'ID: ' + state.userId : 'Гость';
 }
 
 /* ============ NAVIGATION ============ */
@@ -381,29 +388,7 @@ if (resetBtn) {
   });
 }
 
-/* ============ BACKGROUND BEES ============ */
-function initBees() {
-  const container = document.getElementById('bg-bees');
-  if (!container) return;
-  
-  // Красивая SVG пчелка (силуэт)
-  const beeSVG = `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>`;
-  
-  for (let i = 0; i < 15; i++) {
-    const bee = document.createElement('div');
-    bee.className = 'bee';
-    bee.innerHTML = beeSVG;
-    bee.style.left = Math.random() * 100 + '%';
-    bee.style.top = Math.random() * 100 + '%';
-    bee.style.width = (Math.random() * 25 + 15) + 'px'; // Размер от 15 до 40px
-    bee.style.animationDuration = (Math.random() * 15 + 15) + 's'; // Длительность полета 15-30 сек
-    bee.style.animationDelay = (Math.random() * 5) + 's';
-    container.appendChild(bee);
-  }
-}
-
 /* ============ INIT ============ */
-initBees();
 renderTopbar();
 renderBoosts();
 renderTasks();
