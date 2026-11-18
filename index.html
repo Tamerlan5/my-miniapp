@@ -2,12 +2,15 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Banana Tap 🍌</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Bee Tap 🐝</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+  <!-- Фон с пчелами -->
+  <div id="bg-bees"></div>
+
   <!-- Верхняя панель -->
   <header class="topbar">
     <div class="stat">
@@ -30,18 +33,31 @@
     <section id="page-tap" class="page active">
       <div class="tap-zone" id="tapZone">
         <div class="banana" id="banana">
+          <!-- Сюда вставите свою картинку позже -->
           <svg viewBox="0 0 100 100">
             <path d="M20 70 Q15 40 50 25 Q85 15 80 45 Q78 70 50 80 Q30 85 20 70 Z" fill="#FFD93B" stroke="#E0A800" stroke-width="3"/>
             <path d="M50 25 Q55 20 60 25" stroke="#8B5E00" stroke-width="3" fill="none"/>
           </svg>
         </div>
-        <div class="tap-hint">Тапай по банану!</div>
+        <div class="tap-hint">Тапай по сотам!</div>
+      </div>
+      
+      <!-- Быстрый доступ к Бустам и Магазину -->
+      <div class="quick-actions">
+        <div class="action-card" onclick="switchPage('boosts')">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+          <span>Бусты</span>
+        </div>
+        <div class="action-card" onclick="switchPage('shop')">
+          <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1z"/></svg>
+          <span>Магазин</span>
+        </div>
       </div>
     </section>
 
     <!-- BOOSTS -->
     <section id="page-boosts" class="page">
-      <h2>Бусты</h2>
+      <h2>Улучшения улья</h2>
       <div id="boostList" class="card-list"></div>
     </section>
 
@@ -54,8 +70,8 @@
     <!-- FRIENDS -->
     <section id="page-friends" class="page">
       <h2>Друзья</h2>
-      <p class="muted">Пригласи друга и получи 5000 🍌</p>
-      <button class="btn primary" id="inviteBtn">Пригласить друга</button>
+      <p class="muted">Пригласи друга в улей и получи 5000 меда 🍯</p>
+      <button class="btn primary" id="inviteBtn" style="width:100%; margin-top: 10px;">Пригласить друга</button>
       <div class="ref-box">
         <span id="refLink">—</span>
       </div>
@@ -64,7 +80,7 @@
 
     <!-- MINE / PASSIVE -->
     <section id="page-mine" class="page">
-      <h2>Майнинг (пассивный доход)</h2>
+      <h2>Пасека (доход)</h2>
       <div id="mineList" class="card-list"></div>
     </section>
 
@@ -78,25 +94,22 @@
     <section id="page-profile" class="page">
       <h2>Профиль</h2>
       <div class="profile-card">
-        <div class="avatar" id="avatar">🍌</div>
+        <div class="avatar" id="avatar">🐝</div>
         <div>
           <div id="userName">Игрок</div>
           <div class="muted" id="userId">—</div>
         </div>
       </div>
-      <button class="btn danger" id="resetBtn">Сбросить прогресс</button>
+      <button class="btn primary" onclick="switchPage('mine')" style="width:100%; margin-bottom: 10px;">Перейти на Пасеку</button>
+      <button class="btn danger" id="resetBtn" style="width:100%;">Сбросить прогресс</button>
     </section>
   </main>
 
-  <!-- Нижняя навигация -->
+  <!-- Плавающее нижнее меню (iOS Style) -->
   <nav class="bottomnav">
     <button data-page="tap" class="nav-btn active">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
       <span>Тап</span>
-    </button>
-    <button data-page="boosts" class="nav-btn">
-      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-      <span>Бусты</span>
     </button>
     <button data-page="tasks" class="nav-btn">
       <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
@@ -106,23 +119,13 @@
       <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
       <span>Друзья</span>
     </button>
-    <button data-page="mine" class="nav-btn">
-      <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
-      <span>Майнинг</span>
-    </button>
-    <button data-page="shop" class="nav-btn">
-      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1z"/></svg>
-      <span>Магазин</span>
-    </button>
     <button data-page="profile" class="nav-btn">
       <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
       <span>Профиль</span>
     </button>
   </nav>
 
-  <!-- Всплывающее уведомление -->
   <div id="toast" class="toast"></div>
-
   <script src="app.js"></script>
 </body>
 </html>
