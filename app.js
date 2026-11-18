@@ -18,6 +18,15 @@ const defaultState = {
   invitedBy: null,
   userName: 'Игрок',
   userId: null,
+  // Инвентарь для апгрейдера (сохраняется)
+  inventory: [
+    { id: 1, name: 'Яблоко', icon: '🍎', price: 100 },
+    { id: 2, name: 'Банан', icon: '🍌', price: 500 },
+    { id: 3, name: 'Мед', icon: '🍯', price: 1500 },
+    { id: 4, name: 'Улей', icon: '🏠', price: 5000 },
+    { id: 5, name: 'Бриллиант', icon: '💎', price: 15000 },
+    { id: 6, name: 'Корона', icon: '👑', price: 50000 },
+  ]
 };
 
 let state = load();
@@ -26,7 +35,9 @@ function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return { ...defaultState };
-    return { ...defaultState, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    // Объединяем стейт, чтобы новые поля (например, inventory) появились, если их не было
+    return { ...defaultState, ...parsed };
   } catch { return { ...defaultState }; }
 }
 
@@ -92,27 +103,22 @@ function renderTopbar() {
 
 /* ============ NAVIGATION ============ */
 function switchPage(pageName) {
-  // Снимаем активность со всех кнопок и страниц
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   
-  // Активируем нужную страницу
   const page = document.getElementById('page-' + pageName);
   if (page) page.classList.add('active');
 
-  // Подсвечиваем кнопку в нижнем меню
   const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
   if (navBtn) navBtn.classList.add('active');
 
-  // Рендерим контент при переходе
   if (pageName === 'mine') renderMine();
-  if (pageName === 'boosts') renderBoosts();
+  if (pageName === 'boosts') renderUpgrader();
   if (pageName === 'tasks') renderTasks();
   if (pageName === 'shop') renderShop();
   if (pageName === 'friends') renderFriends();
 }
 
-// Обработчик кликов по нижнему меню
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => switchPage(btn.dataset.page));
 });
@@ -128,7 +134,6 @@ function doTap(e) {
   renderTopbar();
   save();
 
-  // floating "+N"
   if (!banana) return;
   const rect = banana.getBoundingClientRect();
   const el = document.createElement('div');
@@ -147,7 +152,6 @@ if (banana) {
   banana.addEventListener('mousedown', doTap);
 }
 
-/* Energy regen: +1 каждые 2 сек */
 setInterval(() => {
   const regen = 1 + state.rechargeLevel * 0.5;
   if (state.energy < state.maxEnergy) {
@@ -157,51 +161,118 @@ setInterval(() => {
   }
 }, 2000);
 
-/* ============ BOOSTS ============ */
-const BOOSTS = [
-  { id: 'multitap', title: 'Мультитап', desc: '+1 к силе тапа', basePrice: 1000, priceMult: 2, apply: () => { state.tapPower += 1; state.multiTapLevel++; } },
-  { id: 'energy', title: 'Энергия', desc: '+500 к макс. энергии', basePrice: 1500, priceMult: 2, apply: () => { state.maxEnergy += 500; state.energyLevel++; } },
-  { id: 'recharge', title: 'Скорость восстановления', desc: '+0.5 энергии/2сек', basePrice: 2000, priceMult: 2.2, apply: () => { state.rechargeLevel++; } },
-];
+/* ============ UPGRADER LOGIC ============ */
+let selectedItem = state.inventory[0];
+let currentMult = 2;
+let isUpgrading = false;
 
-function boostPrice(b) {
-  const lvl = state.boughtBoosts.filter(x => x === b.id).length;
-  return Math.floor(b.basePrice * Math.pow(b.priceMult, lvl));
+const CHANCES = { 1.5: 70, 2: 50, 5: 20, 10: 10 };
+
+function renderUpgrader() {
+  const list = document.getElementById('inventoryList');
+  if (!list) return;
+
+  // Если выбранного предмета больше нет (сгорел)
+  if (!state.inventory.find(i => i.id === selectedItem.id) && state.inventory.length > 0) {
+    selectedItem = state.inventory[0];
+    document.getElementById('wheelIcon').textContent = selectedItem.icon;
+  }
+  
+  // Если инвентарь пуст, создаем базовый
+  if (state.inventory.length === 0) {
+    state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+    selectedItem = state.inventory[0];
+    document.getElementById('wheelIcon').textContent = selectedItem.icon;
+  }
+
+  list.innerHTML = '';
+  state.inventory.forEach(item => {
+    const el = document.createElement('div');
+    el.className = `inv-item ${selectedItem.id === item.id ? 'selected' : ''}`;
+    el.innerHTML = `
+      <div class="inv-item-icon">${item.icon}</div>
+      <div class="inv-item-price">${fmt(item.price)}</div>
+    `;
+    el.addEventListener('click', () => {
+      if (isUpgrading) return;
+      selectedItem = item;
+      document.getElementById('wheelIcon').textContent = item.icon;
+      renderUpgrader();
+    });
+    list.appendChild(el);
+  });
 }
 
-function renderBoosts() {
-  const list = document.getElementById('boostList');
-  if (!list) return;
-  list.innerHTML = '';
-  BOOSTS.forEach(b => {
-    const price = boostPrice(b);
-    const lvl = state.boughtBoosts.filter(x => x === b.id).length;
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="card-icon">
-        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-      </div>
-      <div class="card-body">
-        <div class="card-title">${b.title} (ур. ${lvl})</div>
-        <div class="card-desc">${b.desc}</div>
-      </div>
-      <button class="btn primary" data-id="${b.id}">${fmt(price)} 🍯</button>
-    `;
-    list.appendChild(card);
+function updateChanceUI() {
+  const chance = CHANCES[currentMult];
+  const chanceEl = document.getElementById('chanceText');
+  if (chanceEl) chanceEl.textContent = chance + '%';
+  
+  const arc = document.getElementById('wheelArc');
+  if (arc) {
+    const offset = 565 - (565 * (chance / 100));
+    arc.style.strokeDashoffset = offset;
+    arc.setAttribute('stroke', chance < 30 ? 'url(#gradRed)' : 'url(#gradYellow)');
+  }
+
+  document.querySelectorAll('.mult-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.mult) === currentMult);
   });
-  list.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const b = BOOSTS.find(x => x.id === btn.dataset.id);
-      const price = boostPrice(b);
-      if (state.balance < price) { toast('❌ Недостаточно меда'); return; }
-      state.balance -= price;
-      state.boughtBoosts.push(b.id);
-      b.apply();
-      save();
-      renderBoosts();
-      toast('✅ Куплено: ' + b.title);
-    });
+}
+
+document.querySelectorAll('.mult-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (isUpgrading) return;
+    currentMult = parseFloat(btn.dataset.mult);
+    updateChanceUI();
+  });
+});
+
+const upgradeBtn = document.getElementById('upgradeBtn');
+if (upgradeBtn) {
+  upgradeBtn.addEventListener('click', () => {
+    if (isUpgrading || state.inventory.length === 0) return;
+    
+    const chance = CHANCES[currentMult];
+    const isWin = Math.random() * 100 < chance;
+    
+    isUpgrading = true;
+    const wheelIcon = document.getElementById('wheelIcon');
+    const arc = document.getElementById('wheelArc');
+    
+    wheelIcon.classList.add('spinning');
+    
+    setTimeout(() => {
+      if (isWin) {
+        selectedItem.price = Math.floor(selectedItem.price * currentMult);
+        toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
+        arc.setAttribute('stroke', '#4cd964');
+      } else {
+        toast(`💥 Провал! Предмет сгорел.`);
+        const index = state.inventory.findIndex(i => i.id === selectedItem.id);
+        if (index > -1) state.inventory.splice(index, 1);
+        arc.setAttribute('stroke', '#ff4d4d');
+      }
+      
+      setTimeout(() => {
+        wheelIcon.classList.remove('spinning');
+        isUpgrading = false;
+        
+        if (state.inventory.length === 0) {
+          state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+        }
+        
+        if (!state.inventory.find(i => i.id === selectedItem.id)) {
+          selectedItem = state.inventory[0];
+        }
+        wheelIcon.textContent = selectedItem.icon;
+        
+        save(); // Сохраняем состояние инвентаря!
+        renderUpgrader();
+        updateChanceUI();
+      }, 500);
+      
+    }, 800);
   });
 }
 
@@ -376,11 +447,11 @@ if (resetBtn) {
       state = { ...defaultState };
       save();
       renderTopbar();
-      renderBoosts();
       renderTasks();
       renderMine();
       renderShop();
       renderFriends();
+      renderUpgrader();
       switchPage('tap');
       toast('🔄 Прогресс сброшен');
     }
@@ -389,9 +460,13 @@ if (resetBtn) {
 
 /* ============ INIT ============ */
 renderTopbar();
-renderBoosts();
 renderTasks();
 renderMine();
 renderShop();
 renderFriends();
+renderUpgrader();
+updateChanceUI();
+if (document.getElementById('wheelIcon')) {
+  document.getElementById('wheelIcon').textContent = selectedItem.icon;
+}
 save();
