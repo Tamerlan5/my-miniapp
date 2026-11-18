@@ -179,6 +179,8 @@ function renderUpgrader() {
   }
 
   document.getElementById('wheelIcon').textContent = selectedItem.icon;
+  const invCount = document.getElementById('invCount');
+  if (invCount) invCount.textContent = `${state.inventory.length} предметов`;
 
   list.innerHTML = '';
   state.inventory.forEach(item => {
@@ -207,7 +209,6 @@ function updateChanceUI() {
     const circumference = 534;
     const sectorLength = (chance / 100) * circumference;
     winSector.setAttribute('stroke-dasharray', `${sectorLength} ${circumference}`);
-    winSector.setAttribute('stroke', chance < 30 ? 'url(#gradRed)' : 'url(#gradYellow)');
   }
 
   document.querySelectorAll('.mult-btn').forEach(btn => {
@@ -276,7 +277,7 @@ if (upgradeBtn) {
         arrow.classList.remove('spinning-arrow');
         arrow.style.transform = `rotate(${targetDegree}deg)`;
         
-      }, 3000);
+      }, 3500);
     }, 50);
   });
 }
