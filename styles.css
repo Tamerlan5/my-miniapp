@@ -1,403 +1,484 @@
-:root {
-  --bg: #0a0908;
-  --card: rgba(30, 28, 24, 0.85);
-  --card-border: rgba(255, 217, 59, 0.15);
-  --accent: #ffd93b;
-  --accent-grad: linear-gradient(135deg, #ffe066, #f5b700);
-  --text: #fff9e6;
-  --muted: #7a766c;
-  --danger: #ff4d4d;
+/* ============ STATE ============ */
+const SAVE_KEY = 'banana_tap_save_v1';
+
+const defaultState = {
+  balance: 0,
+  energy: 1000,
+  maxEnergy: 1000,
+  tapPower: 1,
+  level: 1,
+  multiTapLevel: 0,
+  energyLevel: 0,
+  rechargeLevel: 0,
+  passiveLevel: 0,
+  lastPassiveClaim: Date.now(),
+  refCount: 0,
+  completedTasks: [],
+  boughtBoosts: [],
+  invitedBy: null,
+  userName: 'Игрок',
+  userId: null,
+  inventory: [
+    { id: 1, name: 'Яблоко', icon: '🍎', price: 100 },
+    { id: 2, name: 'Банан', icon: '🍌', price: 500 },
+    { id: 3, name: 'Мед', icon: '🍯', price: 1500 },
+    { id: 4, name: 'Улей', icon: '🏠', price: 5000 },
+    { id: 5, name: 'Бриллиант', icon: '💎', price: 15000 },
+    { id: 6, name: 'Корона', icon: '👑', price: 50000 },
+  ]
+};
+
+let state = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return { ...defaultState };
+    const parsed = JSON.parse(raw);
+    return { ...defaultState, ...parsed };
+  } catch { return { ...defaultState }; }
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: 110px;
-  overflow-x: hidden;
-  user-select: none;
+function save() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  renderTopbar();
 }
 
-/* ============ ВЕРХНЯЯ ПАНЕЛЬ ============ */
-.topbar {
-  position: fixed; top: 0; left: 0; right: 0;
-  padding-top: calc(65px + env(safe-area-inset-top));
-  padding-bottom: 15px;
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  background: linear-gradient(to bottom, var(--bg) 50%, transparent 100%);
-  z-index: 100; pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+/* ============ TELEGRAM INIT ============ */
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  try {
+    const u = tg.initDataUnsafe?.user;
+    if (u) {
+      state.userName = [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Игрок';
+      state.userId = u.id;
+      save();
+    }
+  } catch {}
 }
 
-body.on-upgrader .topbar {
-  display: none !important;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-20px);
+// Referral from URL
+const urlParams = new URLSearchParams(location.search);
+const refParam = urlParams.get('ref');
+if (refParam && !state.invitedBy && String(refParam) !== String(state.userId)) {
+  state.invitedBy = refParam;
+  state.balance += 5000;
+  save();
+  toast('🎁 Бонус за вход по ссылке: +5000 🍯');
 }
 
-.stat { 
-  pointer-events: auto;
-  display: flex; align-items: center; gap: 6px; 
-  font-weight: 600; font-size: 15px; 
-  background: var(--card); padding: 8px 16px; border-radius: 20px;
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.ico { width: 18px; height: 18px; fill: var(--accent); }
-
-/* ============ СТРАНИЦЫ ============ */
-#app { flex: 1; display: flex; flex-direction: column; }
-.page { 
-  display: none; padding: 0 16px; animation: fade 0.3s ease; 
-  flex: 1; flex-direction: column; justify-content: center;
-}
-.page.active { display: flex; }
-@keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity:1; transform: none;} }
-h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-.muted { color: var(--muted); font-size: 13px; }
-
-/* ============ ТАП-ЗОНА ============ */
-.tap-zone { 
-  display: flex; flex-direction: column; align-items: center; justify-content: center; 
-  margin-top: 20px; margin-bottom: 40px;
-}
-.banana { 
-  width: 240px; height: 240px; cursor: pointer; 
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-  filter: drop-shadow(0 0 50px rgba(255, 217, 59, 0.25)); 
-  display: flex; align-items: center; justify-content: center;
-}
-.banana:active { transform: scale(0.9); }
-.banana svg, .banana img { width: 100%; height: 100%; object-fit: contain; }
-.tap-hint { margin-top: 24px; color: var(--accent); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
-
-.quick-actions { display: flex; gap: 12px; margin-top: 10px; }
-.action-card {
-  flex: 1; background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 20px; padding: 20px 16px; display: flex; flex-direction: column;
-  align-items: center; gap: 10px; font-weight: 600; font-size: 15px;
-  cursor: pointer; transition: transform 0.1s; backdrop-filter: blur(10px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-.action-card:active { transform: scale(0.96); }
-.action-card svg { width: 32px; height: 32px; fill: var(--accent); }
-
-/* ============ КАРТОЧКИ ============ */
-.card-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-.card {
-  background: var(--card); border-radius: 20px; padding: 16px;
-  display: flex; align-items: center; gap: 14px;
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-.card-icon {
-  width: 48px; height: 48px; border-radius: 14px;
-  background: rgba(255, 217, 59, 0.1); 
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.card-icon svg { width: 24px; height: 24px; fill: var(--accent); }
-.card-body { flex: 1; min-width: 0; }
-.card-title { font-weight: 600; font-size: 15px; }
-.card-desc { color: var(--muted); font-size: 13px; margin-top: 2px; }
-
-.btn {
-  border: none; border-radius: 14px; padding: 10px 16px;
-  font-weight: 600; font-size: 13px; cursor: pointer;
-  transition: all 0.15s; white-space: nowrap;
-}
-.btn:active { transform: scale(0.95); }
-.btn.primary { background: var(--accent-grad); color: #0a0908; }
-.btn.danger { background: rgba(255, 77, 77, 0.15); color: var(--danger); border: 1px solid rgba(255, 77, 77, 0.3); }
-.btn:disabled { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid transparent; }
-
-/* ============ ДРУЗЬЯ И ПРОФИЛЬ ============ */
-.ref-box {
-  background: var(--card); border-radius: 16px; padding: 16px;
-  margin: 12px 0; font-size: 12px; color: var(--muted);
-  word-break: break-all; text-align: center; border: 1px solid var(--card-border);
-}
-.profile-card {
-  background: var(--card); border-radius: 20px; padding: 20px;
-  display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
-  border: 1px solid var(--card-border); backdrop-filter: blur(10px);
-}
-.avatar {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: var(--accent-grad); display: flex; align-items: center; justify-content: center;
-  font-size: 32px; color: #0a0908;
+/* ============ HELPERS ============ */
+function fmt(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+  return Math.floor(n).toString();
 }
 
-/* =========================================
-   АПГРЕЙДЕР (Премиальный дизайн)
-   ========================================= */
-#page-boosts {
-  padding: 0;
-  position: relative;
-  justify-content: flex-start;
-  background: radial-gradient(circle at top, #1a1714 0%, var(--bg) 60%);
-  overflow: hidden;
-  touch-action: none; 
+function toast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-body.on-upgrader {
-  overflow: hidden;
+/* ============ TOPBAR ============ */
+function renderTopbar() {
+  const balEl = document.getElementById('balance');
+  const enEl = document.getElementById('energy');
+  const userEl = document.getElementById('userName');
+  const idEl = document.getElementById('userId');
+
+  if (balEl) balEl.textContent = fmt(state.balance);
+  if (enEl) enEl.textContent = `${Math.floor(state.energy)}/${state.maxEnergy}`;
+  if (userEl) userEl.textContent = state.userName;
+  if (idEl) idEl.textContent = state.userId ? 'ID: ' + state.userId : 'Гость';
 }
 
-.upgrader-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: 60px 16px 20px 16px; 
-  overflow: hidden;
+/* ============ NAVIGATION ============ */
+function switchPage(pageName) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  const page = document.getElementById('page-' + pageName);
+  if (page) page.classList.add('active');
+
+  const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  if (pageName === 'boosts') {
+    document.body.classList.add('on-upgrader');
+    renderUpgrader();
+  } else {
+    document.body.classList.remove('on-upgrader');
+  }
+
+  if (pageName === 'mine') renderMine();
+  if (pageName === 'tasks') renderTasks();
+  if (pageName === 'shop') renderShop();
+  if (pageName === 'friends') renderFriends();
 }
 
-.wheel-container {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 30px;
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchPage(btn.dataset.page));
+});
+
+/* ============ TAP ============ */
+const tapZone = document.getElementById('tapZone');
+const banana = document.getElementById('banana');
+
+function doTap(e) {
+  if (state.energy < 1) { toast('⚡ Энергия кончилась!'); return; }
+  state.energy -= 1;
+  state.balance += state.tapPower;
+  renderTopbar();
+  save();
+
+  if (!banana) return;
+  const rect = banana.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.textContent = '+' + state.tapPower;
+  el.style.cssText = `position:fixed;left:${e.clientX || rect.left + rect.width/2}px;top:${e.clientY || rect.top + rect.height/2}px;color:#ffd93b;font-weight:700;pointer-events:none;z-index:999;transition:all 0.6s ease;font-size:20px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => {
+    el.style.transform = 'translateY(-80px)';
+    el.style.opacity = '0';
+  });
+  setTimeout(() => el.remove(), 600);
 }
 
-.wheel-glow {
-  position: absolute;
-  width: 220px;
-  height: 220px;
-  background: rgba(255, 217, 59, 0.12);
-  filter: blur(50px);
-  border-radius: 50%;
-  z-index: 0;
-  pointer-events: none;
+if (banana) {
+  banana.addEventListener('touchstart', (e) => { e.preventDefault(); doTap(e.touches[0]); }, { passive: false });
+  banana.addEventListener('mousedown', doTap);
 }
 
-.wheel-svg {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 1;
-  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); 
+setInterval(() => {
+  const regen = 1 + state.rechargeLevel * 0.5;
+  if (state.energy < state.maxEnergy) {
+    state.energy = Math.min(state.maxEnergy, state.energy + regen);
+    renderTopbar();
+    save();
+  }
+}, 2000);
+
+/* ============ UPGRADER LOGIC ============ */
+let selectedItem = state.inventory[0];
+let currentMult = 2;
+let isUpgrading = false;
+
+const CHANCES = { 1.5: 70, 2: 50, 5: 20, 10: 10 };
+
+function renderUpgrader() {
+  const list = document.getElementById('inventoryList');
+  if (!list) return;
+
+  if (!state.inventory.find(i => i.id === selectedItem.id) && state.inventory.length > 0) {
+    selectedItem = state.inventory[0];
+  }
+  if (state.inventory.length === 0) {
+    state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+    selectedItem = state.inventory[0];
+  }
+
+  document.getElementById('wheelIcon').textContent = selectedItem.icon;
+  const invCount = document.getElementById('invCount');
+  if (invCount) invCount.textContent = `${state.inventory.length} предметов`;
+
+  list.innerHTML = '';
+  state.inventory.forEach(item => {
+    const el = document.createElement('div');
+    el.className = `inv-item ${selectedItem.id === item.id ? 'selected' : ''}`;
+    el.innerHTML = `
+      <div class="inv-item-icon">${item.icon}</div>
+      <div class="inv-item-price">${fmt(item.price)}</div>
+    `;
+    el.addEventListener('click', () => {
+      if (isUpgrading) return;
+      selectedItem = item;
+      document.getElementById('wheelIcon').textContent = item.icon;
+      renderUpgrader();
+    });
+    list.appendChild(el);
+  });
 }
 
-.wheel-center-item {
-  position: relative;
-  font-size: 80px;
-  z-index: 2;
-  pointer-events: none;
-  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.8));
-  animation: float 3s ease-in-out infinite;
+function updateChanceUI() {
+  const chance = CHANCES[currentMult];
+  document.getElementById('chanceText').textContent = chance + '%';
+  
+  const winSector = document.getElementById('winSector');
+  if (winSector) {
+    const circumference = 534;
+    const sectorLength = (chance / 100) * circumference;
+    winSector.setAttribute('stroke-dasharray', `${sectorLength} ${circumference}`);
+  }
+
+  document.querySelectorAll('.mult-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.mult) === currentMult);
+  });
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
+document.querySelectorAll('.mult-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (isUpgrading) return;
+    currentMult = parseFloat(btn.dataset.mult);
+    updateChanceUI();
+  });
+});
+
+const upgradeBtn = document.getElementById('upgradeBtn');
+if (upgradeBtn) {
+  upgradeBtn.addEventListener('click', () => {
+    if (isUpgrading || state.inventory.length === 0) return;
+    
+    isUpgrading = true;
+    const chance = CHANCES[currentMult];
+    const isWin = Math.random() * 100 < chance;
+    
+    let targetPercent;
+    if (isWin) {
+      targetPercent = Math.random() * (chance - 4) + 2; 
+    } else {
+      targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
+    }
+    
+    const targetDegree = (targetPercent / 100) * 360;
+    const totalRotation = 1800 + targetDegree;
+    
+    const arrow = document.getElementById('wheelArrow');
+    
+    arrow.classList.remove('spinning-arrow');
+    arrow.style.transform = `rotate(0deg)`;
+    
+    setTimeout(() => {
+      arrow.classList.add('spinning-arrow');
+      arrow.style.transform = `rotate(${totalRotation}deg)`;
+      
+      setTimeout(() => {
+        isUpgrading = false;
+        
+        if (isWin) {
+          selectedItem.price = Math.floor(selectedItem.price * currentMult);
+          toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
+        } else {
+          toast(`💥 Провал! Предмет сгорел.`);
+          const index = state.inventory.findIndex(i => i.id === selectedItem.id);
+          if (index > -1) state.inventory.splice(index, 1);
+          
+          if (state.inventory.length === 0) {
+            state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+          }
+          if (!state.inventory.find(i => i.id === selectedItem.id)) {
+            selectedItem = state.inventory[0];
+          }
+        }
+        
+        save();
+        renderUpgrader();
+        
+        arrow.classList.remove('spinning-arrow');
+        arrow.style.transform = `rotate(${targetDegree}deg)`;
+        
+      }, 5000);
+    }, 50);
+  });
 }
 
-/* Стрелка */
-.wheel-arrow {
-  position: absolute;
-  top: 0; left: 0; 
-  width: 100%; height: 100%;
-  z-index: 3;
-  pointer-events: none;
-  transform: rotate(0deg); 
+/* ============ TASKS ============ */
+const TASKS = [
+  { id: 'tg_channel', title: 'Подписаться на канал', desc: '+2000 🍯', reward: 2000, url: 'https://t.me/telegram' },
+  { id: 'invite_1', title: 'Пригласить 1 друга', desc: '+5000 🍯', reward: 5000, check: () => state.refCount >= 1 },
+  { id: 'tap_100', title: 'Сделать 100 тапов', desc: '+1000 🍯', reward: 1000, check: () => state.balance >= 100 },
+];
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  if (!list) return;
+  list.innerHTML = '';
+  TASKS.forEach(t => {
+    const done = state.completedTasks.includes(t.id);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${t.title}</div>
+        <div class="card-desc">${t.desc}</div>
+      </div>
+      <button class="btn ${done ? '' : 'primary'}" data-id="${t.id}" ${done ? 'disabled' : ''}>${done ? 'Готово' : 'Выполнить'}</button>
+    `;
+    list.appendChild(card);
+  });
+  list.querySelectorAll('button:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = TASKS.find(x => x.id === btn.dataset.id);
+      if (t.check && !t.check()) { toast('❌ Условие не выполнено'); return; }
+      if (t.url) window.open(t.url, '_blank');
+      state.balance += t.reward;
+      state.completedTasks.push(t.id);
+      save();
+      renderTasks();
+      toast('🎉 Награда: +' + t.reward + ' 🍯');
+    });
+  });
 }
 
-.wheel-arrow svg {
-  position: absolute;
-  top: -12px; 
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 32px;
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9));
-  transform-origin: center 162px; 
+/* ============ FRIENDS ============ */
+function renderFriends() {
+  const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
+  const linkEl = document.getElementById('refLink');
+  const countEl = document.getElementById('refCount');
+  if (linkEl) linkEl.textContent = link;
+  if (countEl) countEl.textContent = state.refCount;
 }
 
-.spinning-arrow {
-  transition: transform 5s cubic-bezier(0.1, 0.9, 0.1, 1);
+const inviteBtn = document.getElementById('inviteBtn');
+if (inviteBtn) {
+  inviteBtn.addEventListener('click', () => {
+    const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
+    if (navigator.share) {
+      navigator.share({ title: 'Bee Tap', text: 'Тапай мед и получай награды!', url: link }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(link).then(() => toast('📋 Ссылка скопирована'));
+    }
+  });
 }
 
-.upgrade-panel {
-  width: 100%;
-  max-width: 320px;
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 24px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+/* ============ MINE / PASSIVE ============ */
+const MINE_ITEMS = [
+  { id: 'farm1', title: 'Медовая плантация', desc: '+50 🍯/час', price: 3000, rate: 50 },
+  { id: 'farm2', title: 'Пчелиный завод', desc: '+200 🍯/час', price: 10000, rate: 200 },
+  { id: 'farm3', title: 'Медовая империя', desc: '+1000 🍯/час', price: 40000, rate: 1000 },
+];
+
+function getPassiveRate() {
+  return state.passiveLevel * 50; 
 }
 
-.multiplier-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
+function renderMine() {
+  const list = document.getElementById('mineList');
+  if (!list) return;
+  const now = Date.now();
+  const hours = (now - state.lastPassiveClaim) / 3600000;
+  const earned = Math.floor(getPassiveRate() * hours);
+  
+  list.innerHTML = `
+    <div class="card">
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div>
+      <div class="card-body">
+        <div class="card-title">Накоплено меда</div>
+        <div class="card-desc">${fmt(earned)} 🍯 за ${hours.toFixed(2)} ч</div>
+      </div>
+      <button class="btn primary" id="claimPassive">Забрать</button>
+    </div>
+  `;
+
+  MINE_ITEMS.forEach(m => {
+    const owned = state.boughtBoosts.includes(m.id);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div>
+      <div class="card-body">
+        <div class="card-title">${m.title}</div>
+        <div class="card-desc">${m.desc}</div>
+      </div>
+      <button class="btn ${owned ? '' : 'primary'}" ${owned ? 'disabled' : ''}>${owned ? 'Куплено' : fmt(m.price) + ' 🍯'}</button>
+    `;
+    list.appendChild(card);
+    if (!owned) {
+      card.querySelector('button').addEventListener('click', () => {
+        if (state.balance < m.price) { toast('❌ Недостаточно меда'); return; }
+        state.balance -= m.price;
+        state.boughtBoosts.push(m.id);
+        state.passiveLevel += m.rate / 50;
+        save();
+        renderMine();
+        toast('✅ Куплено: ' + m.title);
+      });
+    }
+  });
+
+  const claimBtn = document.getElementById('claimPassive');
+  if (claimBtn) {
+    claimBtn.addEventListener('click', () => {
+      if (earned < 1) { toast('🐝 Мед еще не накопился'); return; }
+      state.balance += earned;
+      state.lastPassiveClaim = now;
+      save();
+      renderMine();
+      toast('💰 Получено: +' + fmt(earned) + ' 🍯');
+    });
+  }
 }
 
-.mult-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid transparent;
-  color: var(--muted);
-  padding: 12px 0;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
+/* ============ SHOP ============ */
+const SHOP_ITEMS = [
+  { id: 'energy_refill', title: 'Полный заряд энергии', desc: 'Мгновенно восстановить энергию', price: 500, action: () => { state.energy = state.maxEnergy; } },
+  { id: 'tap_x2', title: 'x2 к тапу на 1 час', desc: 'Удвоение силы тапа', price: 2000, action: () => { state.tapPower *= 2; setTimeout(() => { state.tapPower = Math.max(1, Math.floor(state.tapPower / 2)); save(); }, 3600000); } },
+];
+
+function renderShop() {
+  const list = document.getElementById('shopList');
+  if (!list) return;
+  list.innerHTML = '';
+  SHOP_ITEMS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1z"/></svg></div>
+      <div class="card-body">
+        <div class="card-title">${s.title}</div>
+        <div class="card-desc">${s.desc}</div>
+      </div>
+      <button class="btn primary">${fmt(s.price)} 🍯</button>
+    `;
+    list.appendChild(card);
+    card.querySelector('button').addEventListener('click', () => {
+      if (state.balance < s.price) { toast('❌ Недостаточно меда'); return; }
+      state.balance -= s.price;
+      s.action();
+      save();
+      toast('✅ Куплено: ' + s.title);
+    });
+  });
 }
 
-.mult-btn.active {
-  background: var(--accent-grad);
-  color: #0a0908;
-  box-shadow: 0 4px 15px rgba(245, 183, 0, 0.3);
+/* ============ PROFILE RESET ============ */
+const resetBtn = document.getElementById('resetBtn');
+if (resetBtn) {
+  resetBtn.addEventListener('click', () => {
+    if (confirm('Сбросить весь прогресс?')) {
+      localStorage.removeItem(SAVE_KEY);
+      state = { ...defaultState };
+      save();
+      renderTopbar();
+      renderTasks();
+      renderMine();
+      renderShop();
+      renderFriends();
+      renderUpgrader();
+      switchPage('tap');
+      toast('🔄 Прогресс сброшен');
+    }
+  });
 }
 
-.chance-info {
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 500;
-  color: var(--muted);
-  font-size: 14px;
+/* ============ INIT ============ */
+renderTopbar();
+renderTasks();
+renderMine();
+renderShop();
+renderFriends();
+renderUpgrader();
+updateChanceUI();
+if (document.getElementById('wheelIcon')) {
+  document.getElementById('wheelIcon').textContent = selectedItem.icon;
 }
-
-.chance-info span {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.upgrade-action-btn {
-  width: 100%;
-  font-size: 16px;
-  padding: 16px;
-  border-radius: 16px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 8px 25px rgba(245, 183, 0, 0.3);
-}
-
-.inventory-section {
-  width: 100%;
-  max-width: 320px;
-  margin-top: 30px;
-}
-
-.inventory-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.inventory-header h3 {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.items-count {
-  font-size: 12px;
-  color: var(--muted);
-  background: rgba(255,255,255,0.05);
-  padding: 4px 10px;
-  border-radius: 10px;
-}
-
-.inventory-list {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  scrollbar-width: none;
-  touch-action: pan-x; 
-}
-
-.inventory-list::-webkit-scrollbar { display: none; }
-
-.inv-item {
-  flex-shrink: 0;
-  width: 76px;
-  background: var(--card);
-  border: 2px solid rgba(255,255,255,0.05);
-  border-radius: 16px;
-  padding: 12px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.inv-item.selected {
-  border-color: var(--accent);
-  background: rgba(255, 217, 59, 0.08);
-  box-shadow: 0 0 15px rgba(255, 217, 59, 0.15);
-}
-
-.inv-item-icon { font-size: 32px; }
-.inv-item-price { 
-  font-size: 11px; 
-  font-weight: 700; 
-  color: var(--muted); 
-}
-.inv-item.selected .inv-item-price {
-  color: var(--accent);
-}
-
-/* ============ НИЖНЕЕ МЕНЮ ============ */
-.bottomnav {
-  position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); 
-  left: 50%; transform: translateX(-50%);
-  width: calc(100% - 24px); max-width: 420px; height: 72px;
-  background: rgba(20, 18, 15, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  border-radius: 36px; border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 1000;
-  display: grid; grid-template-columns: 1fr 1fr 1.2fr 1fr 1fr; align-items: center; padding: 0 4px;
-}
-.nav-btn {
-  background: none; border: none; color: var(--muted);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; font-size: 10px; font-weight: 600; cursor: pointer; 
-  height: 100%; width: 100%; transition: color 0.2s;
-  -webkit-tap-highlight-color: transparent; background-color: transparent; 
-}
-.nav-btn svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.2s; }
-.nav-btn.active:not(.center-btn) { color: var(--accent); }
-.nav-btn.active:not(.center-btn) svg { transform: translateY(-2px); }
-
-.center-btn { position: relative; display: flex; justify-content: center; align-items: center; background: none; z-index: 1001; }
-.center-btn-inner {
-  position: absolute; top: -18px; width: 66px; height: 66px;
-  background: var(--accent-grad); border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 24px rgba(245, 183, 0, 0.5); border: 4px solid var(--bg); 
-  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.center-btn-inner svg { width: 32px; height: 32px; fill: #0a0908; }
-.center-btn:active .center-btn-inner { transform: scale(0.92); }
-
-/* ============ ТОСТ ============ */
-.toast {
-  position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: rgba(35, 31, 24, 0.95); color: var(--accent); padding: 12px 20px;
-  border-radius: 16px; font-size: 14px; font-weight: 600; opacity: 0;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; z-index: 2000;
-  border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px); white-space: nowrap;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+save();
