@@ -33,14 +33,12 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 12px;
   background: linear-gradient(to bottom, var(--bg) 50%, transparent 100%);
   z-index: 100; pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
 body.on-upgrader .topbar {
-  display: none !important;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-20px);
 }
 
 .stat { 
@@ -145,12 +143,6 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   position: relative;
   justify-content: flex-start;
   background: radial-gradient(circle at top, #1a1714 0%, var(--bg) 60%);
-  overflow: hidden;
-  touch-action: none; 
-}
-
-body.on-upgrader {
-  overflow: hidden;
 }
 
 .upgrader-wrapper {
@@ -159,7 +151,6 @@ body.on-upgrader {
   align-items: center;
   width: 100%;
   padding: 60px 16px 20px 16px; 
-  overflow: hidden;
 }
 
 .wheel-container {
@@ -220,10 +211,11 @@ body.on-upgrader {
   position: absolute;
   top: -12px; 
   left: 50%;
-  transform: translateX(-50%);
+  margin-left: -16px; /* Центрирование по X */
   width: 32px;
   height: 32px;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9));
+  /* Вращение строго относительно центра колеса */
   transform-origin: center 162px; 
 }
 
@@ -323,7 +315,6 @@ body.on-upgrader {
   overflow-x: auto;
   padding-bottom: 10px;
   scrollbar-width: none;
-  touch-action: pan-x; 
 }
 
 .inventory-list::-webkit-scrollbar { display: none; }
