@@ -128,15 +128,86 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   font-size: 32px; color: #0a0908;
 }
 
-/* ============ АПГРЕЙДЕР ============ */
-.upgrader-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-.wheel-wrapper { position: relative; width: 260px; height: 260px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
-.wheel-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5)); }
-.wheel-icon { position: absolute; font-size: 80px; pointer-events: none; transition: transform 0.3s; }
-.wheel-icon.spinning { animation: spinWheel 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-@keyframes spinWheel { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.2) rotate(180deg); } 100% { transform: scale(1) rotate(360deg); } }
+/* =========================================
+   АПГРЕЙДЕР (Колесо со стрелкой)
+   ========================================= */
+#page-boosts {
+  padding: 0;
+  position: relative;
+  justify-content: flex-start;
+}
 
-.upgrade-controls { width: 100%; max-width: 300px; }
+.upgrader-overlay {
+  position: relative;
+  width: 100%;
+  margin-top: -100px; 
+  padding-top: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+.upgrader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 16px;
+}
+
+#page-boosts h2 { display: none; }
+
+.wheel-wrapper {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.wheel-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+  z-index: 1;
+}
+
+.wheel-icon {
+  position: relative;
+  font-size: 70px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.wheel-arrow {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  transform: rotate(0deg); 
+}
+
+.wheel-arrow svg {
+  position: absolute;
+  top: 5px; 
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+}
+
+.spinning-arrow {
+  transition: transform 3s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+.upgrade-controls { width: 100%; max-width: 300px; margin-top: 10px; }
 .multiplier-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
 .mult-btn {
   flex: 1; background: var(--card); border: 1px solid var(--card-border);
@@ -146,7 +217,7 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 .mult-btn.active { background: var(--accent-grad); color: #0a0908; border-color: var(--accent); }
 .chance-display { text-align: center; margin-bottom: 16px; font-weight: 600; color: var(--accent); font-size: 15px; }
 
-.inventory-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+.inventory-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; width: 100%; }
 .inventory-list::-webkit-scrollbar { display: none; }
 .inv-item {
   flex-shrink: 0; width: 80px; background: var(--card); border: 2px solid var(--card-border);
