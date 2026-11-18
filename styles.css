@@ -1,12 +1,11 @@
 :root {
-  --bg: #12100e;
-  --bg-grad: radial-gradient(circle at top, #241f16 0%, #12100e 70%);
-  --card: rgba(35, 31, 24, 0.6);
-  --card-border: rgba(255, 217, 59, 0.1);
+  --bg: #0a0908; /* Очень темный фон */
+  --card: rgba(30, 28, 24, 0.7);
+  --card-border: rgba(255, 217, 59, 0.15);
   --accent: #ffd93b;
   --accent-grad: linear-gradient(135deg, #ffe066, #f5b700);
   --text: #fff9e6;
-  --muted: #9c9588;
+  --muted: #7a766c;
   --danger: #ff4d4d;
 }
 
@@ -14,96 +13,99 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg-grad);
-  background-attachment: fixed;
+  background-color: var(--bg);
   color: var(--text);
-  padding-top: calc(64px + env(safe-area-inset-top)); /* Отступ для челки iPhone */
+  /* Важно: отступ сверху, чтобы шапка Telegram не перекрывала баланс */
+  padding-top: calc(100px + env(safe-area-inset-top));
   padding-bottom: 110px;
   overflow-x: hidden;
   user-select: none;
   min-height: 100vh;
+  position: relative;
 }
 
-/* Фон с пчелами */
-#bg-bees {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 0; overflow: hidden;
-}
-.bee {
-  position: absolute;
-  opacity: 0.05; /* Очень бледные, чтобы не бросались в глаза */
-  animation: fly linear infinite;
-}
-@keyframes fly {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(30px, -50px) rotate(10deg); }
-  50% { transform: translate(-20px, -100px) rotate(-10deg); }
-  75% { transform: translate(50px, -50px) rotate(15deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
+/* Фон с серыми линиями (соты) */
+#bg-lines {
+  position: fixed; top: -10%; left: -10%; width: 120%; height: 120%;
+  pointer-events: none; z-index: 0;
+  /* Создаем паттерн из линий */
+  background-image: 
+    linear-gradient(30deg, rgba(255,255,255,0.03) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,0.03) 87.5%, rgba(255,255,255,0.03)),
+    linear-gradient(150deg, rgba(255,255,255,0.03) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,0.03) 87.5%, rgba(255,255,255,0.03)),
+    linear-gradient(30deg, rgba(255,255,255,0.03) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,0.03) 87.5%, rgba(255,255,255,0.03)),
+    linear-gradient(150deg, rgba(255,255,255,0.03) 12%, transparent 12.5%, transparent 87%, rgba(255,255,255,0.03) 87.5%, rgba(255,255,255,0.03)),
+    linear-gradient(60deg, rgba(255,255,255,0.02) 25%, transparent 25.5%, transparent 75%, rgba(255,255,255,0.02) 75%, rgba(255,255,255,0.02)),
+    linear-gradient(60deg, rgba(255,255,255,0.02) 25%, transparent 25.5%, transparent 75%, rgba(255,255,255,0.02) 75%, rgba(255,255,255,0.02));
+  background-size: 60px 104px;
+  background-position: 0 0, 0 0, 30px 52px, 30px 52px, 0 0, 30px 52px;
+  /* Размытие фона */
+  filter: blur(4px);
 }
 
-/* Topbar */
+/* Прозрачная верхняя панель (без черной полосы) */
 .topbar {
   position: fixed; top: 0; left: 0; right: 0;
-  padding-top: env(safe-area-inset-top);
-  height: calc(60px + env(safe-area-inset-top));
-  display: flex; align-items: center; justify-content: space-around;
-  background: rgba(18, 16, 14, 0.8);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--card-border);
+  padding-top: calc(60px + env(safe-area-inset-top)); /* Выталкиваем баланс вниз от крестика */
+  padding-bottom: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  /* Плавный градиент от темного к прозрачному вместо жесткой полосы */
+  background: linear-gradient(to bottom, var(--bg) 30%, transparent 100%);
   z-index: 100;
+  pointer-events: none; /* Пропускаем клики сквозь пустую область */
 }
-.stat { 
-  display: flex; align-items: center; gap: 6px; 
-  font-weight: 600; font-size: 14px; 
-  background: var(--card); padding: 6px 12px; border-radius: 20px;
-  border: 1px solid var(--card-border);
-}
-.ico { width: 16px; height: 16px; fill: var(--accent); }
 
-/* Pages */
-.page { display: none; padding: 16px; animation: fade 0.3s ease; position: relative; z-index: 1; }
+/* Возвращаем клики для самих плашек баланса */
+.stat { 
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 6px; 
+  font-weight: 600; font-size: 15px; 
+  background: var(--card); padding: 8px 16px; border-radius: 20px;
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.ico { width: 18px; height: 18px; fill: var(--accent); }
+
+.page { display: none; padding: 0 16px; animation: fade 0.3s ease; position: relative; z-index: 1; }
 .page.active { display: block; }
 @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity:1; transform: none;} }
 h2 { margin-bottom: 16px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
 .muted { color: var(--muted); font-size: 13px; }
 
-/* Tap */
+/* Тап-зона */
 .tap-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 45vh; }
 .banana { 
   width: 240px; height: 240px; cursor: pointer; transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-  filter: drop-shadow(0 0 40px rgba(255, 217, 59, 0.2)); 
+  filter: drop-shadow(0 0 50px rgba(255, 217, 59, 0.25)); 
   display: flex; align-items: center; justify-content: center;
 }
 .banana:active { transform: scale(0.9); }
 .banana svg, .banana img { width: 100%; height: 100%; object-fit: contain; }
-.tap-hint { margin-top: 24px; color: var(--accent); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.tap-hint { margin-top: 24px; color: var(--accent); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
 
-/* Quick Actions (Бусты и Магазин на главной) */
-.quick-actions {
-  display: flex; gap: 12px; margin-top: 10px;
-}
+/* Кнопки Бусты и Магазин */
+.quick-actions { display: flex; gap: 12px; margin-top: 10px; }
 .action-card {
   flex: 1; background: var(--card); border: 1px solid var(--card-border);
-  border-radius: 16px; padding: 16px; display: flex; flex-direction: column;
-  align-items: center; gap: 8px; font-weight: 600; font-size: 14px;
+  border-radius: 20px; padding: 20px 16px; display: flex; flex-direction: column;
+  align-items: center; gap: 10px; font-weight: 600; font-size: 15px;
   cursor: pointer; transition: transform 0.1s; backdrop-filter: blur(10px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 .action-card:active { transform: scale(0.96); }
-.action-card svg { width: 28px; height: 28px; fill: var(--accent); }
+.action-card svg { width: 32px; height: 32px; fill: var(--accent); }
 
-/* Cards */
+/* Карточки списков */
 .card-list { display: flex; flex-direction: column; gap: 12px; }
 .card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 14px;
-  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border-radius: 20px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
   border: 1px solid var(--card-border);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 .card-icon {
-  width: 46px; height: 46px; border-radius: 12px;
+  width: 48px; height: 48px; border-radius: 14px;
   background: rgba(255, 217, 59, 0.1); 
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -111,60 +113,57 @@ h2 { margin-bottom: 16px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 .card-icon svg { width: 24px; height: 24px; fill: var(--accent); }
 .card-body { flex: 1; min-width: 0; }
 .card-title { font-weight: 600; font-size: 15px; }
-.card-desc { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.card-desc { color: var(--muted); font-size: 13px; margin-top: 2px; }
 .btn {
-  border: none; border-radius: 12px; padding: 10px 16px;
+  border: none; border-radius: 14px; padding: 10px 16px;
   font-weight: 600; font-size: 13px; cursor: pointer;
   transition: all 0.15s;
 }
 .btn:active { transform: scale(0.95); }
-.btn.primary { background: var(--accent-grad); color: #12100e; }
+.btn.primary { background: var(--accent-grad); color: #0a0908; }
 .btn.danger { background: rgba(255, 77, 77, 0.15); color: var(--danger); border: 1px solid rgba(255, 77, 77, 0.3); }
 .btn:disabled { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid transparent; }
 
-/* Friends */
+/* Друзья, профиль */
 .ref-box {
-  background: var(--card); border-radius: 12px; padding: 14px;
+  background: var(--card); border-radius: 16px; padding: 16px;
   margin: 12px 0; font-size: 12px; color: var(--muted);
   word-break: break-all; text-align: center; border: 1px solid var(--card-border);
 }
-
-/* Profile */
 .profile-card {
-  background: var(--card); border-radius: 16px; padding: 20px;
+  background: var(--card); border-radius: 20px; padding: 20px;
   display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--card-border); backdrop-filter: blur(10px);
 }
 .avatar {
-  width: 60px; height: 60px; border-radius: 50%;
+  width: 64px; height: 64px; border-radius: 50%;
   background: var(--accent-grad); display: flex; align-items: center; justify-content: center;
-  font-size: 30px; color: #12100e;
+  font-size: 32px; color: #0a0908;
 }
 
-/* iOS Style Bottom Nav */
+/* Меню (iOS стиль) */
 .bottomnav {
-  position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
+  position: fixed; bottom: calc(24px + env(safe-area-inset-bottom)); 
   left: 50%; transform: translateX(-50%);
-  width: calc(100% - 32px); max-width: 400px;
-  height: 68px;
+  width: calc(100% - 32px); max-width: 400px; height: 70px;
   display: flex; align-items: center; justify-content: space-around;
-  background: rgba(35, 31, 24, 0.8);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-radius: 34px; border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  background: rgba(25, 23, 20, 0.85);
+  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  border-radius: 35px; border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   z-index: 100;
 }
 .nav-btn {
   background: none; border: none; color: var(--muted);
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 500; cursor: pointer; padding: 8px 16px;
-  transition: all 0.2s; border-radius: 20px;
+  font-size: 10px; font-weight: 600; cursor: pointer; padding: 8px 16px;
+  transition: all 0.2s; border-radius: 22px;
 }
 .nav-btn svg { width: 22px; height: 22px; fill: currentColor; transition: transform 0.2s; }
-.nav-btn.active { color: var(--accent); background: rgba(255, 217, 59, 0.1); }
+.nav-btn.active { color: var(--accent); background: rgba(255, 217, 59, 0.12); }
 .nav-btn.active svg { transform: translateY(-2px); }
 
-/* Toast */
+/* Тост */
 .toast {
   position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%) translateY(20px);
   background: rgba(35, 31, 24, 0.95); color: var(--accent); padding: 12px 20px;
