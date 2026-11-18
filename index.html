@@ -8,8 +8,8 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <!-- Верхняя панель (Баланс и Энергия) -->
-  <header class="topbar">
+  <!-- Верхняя панель -->
+  <header class="topbar" id="mainTopbar">
     <div class="stat">
       <svg class="ico" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
       <span id="balance">0</span>
@@ -64,23 +64,36 @@
                 <stop offset="0%" stop-color="#ffe066" />
                 <stop offset="100%" stop-color="#f5b700" />
               </linearGradient>
+              <!-- Паттерн сот -->
+              <pattern id="honeycomb" width="20" height="34" patternUnits="userSpaceOnUse" patternTransform="scale(0.8)">
+                <path d="M10 0 L20 5.77 L20 17.32 L10 23.09 L0 17.32 L0 5.77 Z" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
+                <path d="M10 34 L20 28.23 L20 16.68 L10 10.91 L0 16.68 L0 28.23 Z" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
+              </pattern>
             </defs>
             
+            <!-- Фон колеса с текстурой -->
             <circle cx="100" cy="100" r="90" fill="#0a0908" stroke="#1a1816" stroke-width="2"/>
-            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            <circle cx="100" cy="100" r="90" fill="url(#honeycomb)"/>
+            
+            <!-- Дорожка колеса -->
             <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="12"/>
             
+            <!-- Сектор выигрыша -->
             <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="12" 
                     stroke-dasharray="0 534" stroke-dashoffset="0" 
                     transform="rotate(-90 100 100)" 
                     style="transition: stroke-dasharray 0.3s ease;"/>
           </svg>
           
+          <!-- Центральная иконка -->
           <div class="wheel-center-item" id="wheelIcon">🍌</div>
           
+          <!-- Вращающаяся стрелка -->
           <div class="wheel-arrow" id="wheelArrow">
-            <svg viewBox="0 0 24 24" fill="url(#gradYellow)">
-              <path d="M12 2L4 14h5v8h6v-8h5L12 2z" stroke="#000" stroke-width="1.5"/>
+            <svg viewBox="0 0 24 24">
+              <path d="M12 21L6 9h12L12 21z" fill="#ffd93b" />
+              <rect x="9" y="2" width="6" height="7" rx="2" fill="#ffd93b"/>
+              <path d="M12 21L6 9h12L12 21z" fill="none" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
