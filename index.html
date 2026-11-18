@@ -48,65 +48,70 @@
 
     <!-- UPGRADES (АПГРЕЙДЕР) -->
     <section id="page-boosts" class="page">
-      <div class="upgrader-overlay">
-        <div class="upgrader-container">
+      <div class="upgrader-wrapper">
+        
+        <!-- Колесо -->
+        <div class="wheel-container">
+          <div class="wheel-glow"></div>
           
-          <!-- Колесо -->
-          <div class="wheel-wrapper">
-            <svg class="wheel-svg" viewBox="0 0 200 200">
-              <defs>
-                <linearGradient id="gradYellow" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ffe066" />
-                  <stop offset="100%" stop-color="#f5b700" />
-                </linearGradient>
-                <linearGradient id="gradRed" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ff4d4d" />
-                  <stop offset="100%" stop-color="#990000" />
-                </linearGradient>
-                <linearGradient id="gradGrey" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#2a2826" />
-                  <stop offset="100%" stop-color="#141312" />
-                </linearGradient>
-              </defs>
-              
-              <!-- Фоновый серый круг (проигрыш) -->
-              <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="15"/>
-              
-              <!-- Цветной сектор (шанс выигрыша) -->
-              <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="15" 
-                      stroke-dasharray="0 534" stroke-dashoffset="0" 
-                      transform="rotate(-90 100 100)" 
-                      style="transition: stroke-dasharray 0.3s ease, stroke 0.3s ease;"/>
+          <svg class="wheel-svg" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="gradGrey" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2a2826" />
+                <stop offset="100%" stop-color="#141312" />
+              </linearGradient>
+              <linearGradient id="gradYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffe066" />
+                <stop offset="100%" stop-color="#f5b700" />
+              </linearGradient>
+            </defs>
+            
+            <circle cx="100" cy="100" r="90" fill="#0a0908" stroke="#1a1816" stroke-width="2"/>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="12"/>
+            
+            <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="12" 
+                    stroke-dasharray="0 534" stroke-dashoffset="0" 
+                    transform="rotate(-90 100 100)" 
+                    style="transition: stroke-dasharray 0.3s ease;"/>
+          </svg>
+          
+          <div class="wheel-center-item" id="wheelIcon">🍌</div>
+          
+          <div class="wheel-arrow" id="wheelArrow">
+            <svg viewBox="0 0 24 24" fill="url(#gradYellow)">
+              <path d="M12 2L4 14h5v8h6v-8h5L12 2z" stroke="#000" stroke-width="1.5"/>
             </svg>
-            
-            <!-- Центральный предмет -->
-            <div class="wheel-icon" id="wheelIcon">🍌</div>
-            
-            <!-- Вращающаяся стрелка -->
-            <div class="wheel-arrow" id="wheelArrow">
-              <svg viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 2L4 14h5v8h6v-8h5L12 2z"/>
-              </svg>
-            </div>
           </div>
-
-          <!-- Настройки -->
-          <div class="upgrade-controls">
-            <div class="multiplier-buttons">
-              <button class="mult-btn" data-mult="1.5">x1.5</button>
-              <button class="mult-btn active" data-mult="2">x2</button>
-              <button class="mult-btn" data-mult="5">x5</button>
-              <button class="mult-btn" data-mult="10">x10</button>
-            </div>
-            <div class="chance-display">Шанс: <span id="chanceText">50%</span></div>
-            <button class="btn primary" id="upgradeBtn" style="width: 100%; font-size: 16px; padding: 14px;">Улучшить</button>
-          </div>
-
-          <!-- Инвентарь -->
-          <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 18px; align-self: flex-start;">Инвентарь</h3>
-          <div class="inventory-list" id="inventoryList"></div>
-
         </div>
+
+        <!-- Панель управления -->
+        <div class="upgrade-panel">
+          <div class="multiplier-grid">
+            <button class="mult-btn" data-mult="1.5">x1.5</button>
+            <button class="mult-btn active" data-mult="2">x2</button>
+            <button class="mult-btn" data-mult="5">x5</button>
+            <button class="mult-btn" data-mult="10">x10</button>
+          </div>
+          
+          <div class="chance-info">
+            Шанс успеха: <span id="chanceText">50%</span>
+          </div>
+          
+          <button class="btn primary upgrade-action-btn" id="upgradeBtn">
+            Улучшить
+          </button>
+        </div>
+
+        <!-- Инвентарь -->
+        <div class="inventory-section">
+          <div class="inventory-header">
+            <h3>Ваш инвентарь</h3>
+            <span class="items-count" id="invCount">6 предметов</span>
+          </div>
+          <div class="inventory-list" id="inventoryList"></div>
+        </div>
+
       </div>
     </section>
 
