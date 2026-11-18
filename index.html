@@ -8,10 +8,10 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <!-- Фон с пчелами -->
-  <div id="bg-bees"></div>
+  <!-- Статичный фон с линиями -->
+  <div id="bg-lines"></div>
 
-  <!-- Верхняя панель -->
+  <!-- Верхняя панель (Баланс и Энергия) -->
   <header class="topbar">
     <div class="stat">
       <svg class="ico" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
@@ -21,10 +21,6 @@
       <svg class="ico" viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
       <span id="energy">1000/1000</span>
     </div>
-    <div class="stat">
-      <svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
-      <span id="level">1</span>
-    </div>
   </header>
 
   <!-- Контент страниц -->
@@ -33,16 +29,15 @@
     <section id="page-tap" class="page active">
       <div class="tap-zone" id="tapZone">
         <div class="banana" id="banana">
-          <!-- Сюда вставите свою картинку позже -->
           <svg viewBox="0 0 100 100">
             <path d="M20 70 Q15 40 50 25 Q85 15 80 45 Q78 70 50 80 Q30 85 20 70 Z" fill="#FFD93B" stroke="#E0A800" stroke-width="3"/>
             <path d="M50 25 Q55 20 60 25" stroke="#8B5E00" stroke-width="3" fill="none"/>
           </svg>
         </div>
-        <div class="tap-hint">Тапай по сотам!</div>
+        <div class="tap-hint">ТАПАЙ ПО СОТАМ!</div>
       </div>
       
-      <!-- Быстрый доступ к Бустам и Магазину -->
+      <!-- Быстрый доступ -->
       <div class="quick-actions">
         <div class="action-card" onclick="switchPage('boosts')">
           <svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
@@ -55,42 +50,35 @@
       </div>
     </section>
 
-    <!-- BOOSTS -->
+    <!-- Остальные страницы без изменений -->
     <section id="page-boosts" class="page">
       <h2>Улучшения улья</h2>
       <div id="boostList" class="card-list"></div>
     </section>
 
-    <!-- TASKS -->
     <section id="page-tasks" class="page">
       <h2>Задания</h2>
       <div id="taskList" class="card-list"></div>
     </section>
 
-    <!-- FRIENDS -->
     <section id="page-friends" class="page">
       <h2>Друзья</h2>
       <p class="muted">Пригласи друга в улей и получи 5000 меда 🍯</p>
       <button class="btn primary" id="inviteBtn" style="width:100%; margin-top: 10px;">Пригласить друга</button>
-      <div class="ref-box">
-        <span id="refLink">—</span>
-      </div>
+      <div class="ref-box"><span id="refLink">—</span></div>
       <p class="muted">Приглашено: <b id="refCount">0</b></p>
     </section>
 
-    <!-- MINE / PASSIVE -->
     <section id="page-mine" class="page">
       <h2>Пасека (доход)</h2>
       <div id="mineList" class="card-list"></div>
     </section>
 
-    <!-- SHOP -->
     <section id="page-shop" class="page">
       <h2>Магазин</h2>
       <div id="shopList" class="card-list"></div>
     </section>
 
-    <!-- PROFILE -->
     <section id="page-profile" class="page">
       <h2>Профиль</h2>
       <div class="profile-card">
@@ -105,7 +93,7 @@
     </section>
   </main>
 
-  <!-- Плавающее нижнее меню (iOS Style) -->
+  <!-- Меню -->
   <nav class="bottomnav">
     <button data-page="tap" class="nav-btn active">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
