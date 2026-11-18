@@ -33,11 +33,12 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 12px;
   background: linear-gradient(to bottom, var(--bg) 50%, transparent 100%);
   z-index: 100; pointer-events: none;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* Скрываем верхнюю панель на странице апгрейда */
+/* СКРЫТИЕ ПАНЕЛИ НА АПГРЕЙДЕ */
 body.on-upgrader .topbar {
+  display: none !important;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-20px);
@@ -152,8 +153,8 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   flex-direction: column;
   align-items: center;
   width: 100%;
-  padding: 40px 16px 20px 16px; 
-  margin-top: 20px;
+  /* Опускаем колесо ниже */
+  padding: 60px 16px 20px 16px; 
 }
 
 .wheel-container {
@@ -170,7 +171,7 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   position: absolute;
   width: 220px;
   height: 220px;
-  background: rgba(255, 217, 59, 0.15);
+  background: rgba(255, 217, 59, 0.12);
   filter: blur(50px);
   border-radius: 50%;
   z-index: 0;
@@ -182,28 +183,28 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: 1;
-  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.7)); 
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); 
 }
 
 .wheel-center-item {
   position: relative;
-  font-size: 90px;
+  font-size: 80px;
   z-index: 2;
   pointer-events: none;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.8));
   animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-6px); }
   100% { transform: translateY(0px); }
 }
 
 /* Стрелка */
 .wheel-arrow {
   position: absolute;
-  top: -10px; left: 0; 
+  top: -15px; left: 0; 
   width: 100%; height: 100%;
   z-index: 3;
   pointer-events: none;
@@ -215,8 +216,8 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   top: 0px; 
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9));
 }
 
