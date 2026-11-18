@@ -110,7 +110,6 @@ function switchPage(pageName) {
   const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
   if (navBtn) navBtn.classList.add('active');
 
-  // Скрываем топбар на странице апгрейда
   if (pageName === 'boosts') {
     document.body.classList.add('on-upgrader');
     renderUpgrader();
@@ -284,7 +283,7 @@ if (upgradeBtn) {
         arrow.classList.remove('spinning-arrow');
         arrow.style.transform = `rotate(${targetDegree}deg)`;
         
-      }, 3500);
+      }, 5000);
     }, 50);
   });
 }
