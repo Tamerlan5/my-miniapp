@@ -8,7 +8,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <!-- Верхняя панель -->
+  <!-- Верхняя панель (Баланс и Энергия) -->
   <header class="topbar" id="mainTopbar">
     <div class="stat">
       <svg class="ico" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
@@ -64,28 +64,32 @@
                 <stop offset="0%" stop-color="#ffe066" />
                 <stop offset="100%" stop-color="#f5b700" />
               </linearGradient>
-              <!-- Паттерн сот -->
-              <pattern id="honeycomb" width="20" height="34" patternUnits="userSpaceOnUse" patternTransform="scale(0.8)">
+              
+              <!-- Узор сот (тонкие линии) -->
+              <pattern id="honeycomb" width="20" height="34" patternUnits="userSpaceOnUse" patternTransform="scale(1)">
                 <path d="M10 0 L20 5.77 L20 17.32 L10 23.09 L0 17.32 L0 5.77 Z" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
                 <path d="M10 34 L20 28.23 L20 16.68 L10 10.91 L0 16.68 L0 28.23 Z" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5"/>
               </pattern>
             </defs>
             
-            <!-- Фон колеса с текстурой -->
-            <circle cx="100" cy="100" r="90" fill="#0a0908" stroke="#1a1816" stroke-width="2"/>
-            <circle cx="100" cy="100" r="90" fill="url(#honeycomb)"/>
+            <!-- Внутренний фон колеса -->
+            <circle cx="100" cy="100" r="75" fill="#0e0d0b" />
+            <circle cx="100" cy="100" r="75" fill="url(#honeycomb)" />
             
-            <!-- Дорожка колеса -->
-            <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="12"/>
+            <!-- Внешняя обводка -->
+            <circle cx="100" cy="100" r="90" fill="none" stroke="#1a1816" stroke-width="4"/>
             
-            <!-- Сектор выигрыша -->
-            <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="12" 
+            <!-- Дорожка колеса (Серый фон) -->
+            <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="10"/>
+            
+            <!-- Сектор выигрыша (желтый) -->
+            <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="10" 
                     stroke-dasharray="0 534" stroke-dashoffset="0" 
                     transform="rotate(-90 100 100)" 
                     style="transition: stroke-dasharray 0.3s ease;"/>
           </svg>
           
-          <!-- Центральная иконка -->
+          <!-- Центральная иконка предмета -->
           <div class="wheel-center-item" id="wheelIcon">🍌</div>
           
           <!-- Вращающаяся стрелка -->
