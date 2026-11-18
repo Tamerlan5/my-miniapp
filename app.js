@@ -7,10 +7,10 @@ const defaultState = {
   maxEnergy: 1000,
   tapPower: 1,
   level: 1,
-  multiTapLevel: 0,       // +1 к тапу за уровень
-  energyLevel: 0,         // +500 к макс. энергии за уровень
-  rechargeLevel: 0,       // скорость восстановления
-  passiveLevel: 0,        // пассивный доход в час
+  multiTapLevel: 0,
+  energyLevel: 0,
+  rechargeLevel: 0,
+  passiveLevel: 0,
   lastPassiveClaim: Date.now(),
   refCount: 0,
   completedTasks: [],
@@ -55,7 +55,7 @@ const urlParams = new URLSearchParams(location.search);
 const refParam = urlParams.get('ref');
 if (refParam && !state.invitedBy && String(refParam) !== String(state.userId)) {
   state.invitedBy = refParam;
-  state.balance += 5000; // бонус новичку за вход по рефке
+  state.balance += 5000;
   save();
   toast('🎁 Бонус за вход по ссылке: +5000 🍯');
 }
@@ -81,13 +81,11 @@ function toast(msg) {
 function renderTopbar() {
   const balEl = document.getElementById('balance');
   const enEl = document.getElementById('energy');
-  const lvlEl = document.getElementById('level');
   const userEl = document.getElementById('userName');
   const idEl = document.getElementById('userId');
 
   if (balEl) balEl.textContent = fmt(state.balance);
   if (enEl) enEl.textContent = `${Math.floor(state.energy)}/${state.maxEnergy}`;
-  if (lvlEl) lvlEl.textContent = state.level;
   if (userEl) userEl.textContent = state.userName;
   if (idEl) idEl.textContent = state.userId ? 'ID: ' + state.userId : 'Гость';
 }
@@ -102,7 +100,7 @@ function switchPage(pageName) {
   const page = document.getElementById('page-' + pageName);
   if (page) page.classList.add('active');
 
-  // Подсвечиваем кнопку в нижнем меню, если она там есть
+  // Подсвечиваем кнопку в нижнем меню
   const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
   if (navBtn) navBtn.classList.add('active');
 
@@ -124,13 +122,14 @@ const tapZone = document.getElementById('tapZone');
 const banana = document.getElementById('banana');
 
 function doTap(e) {
-  if (state.energy < 1) { toast('⚡ Энергия кончилась! Подожди или купи буст'); return; }
+  if (state.energy < 1) { toast('⚡ Энергия кончилась!'); return; }
   state.energy -= 1;
   state.balance += state.tapPower;
   renderTopbar();
   save();
 
   // floating "+N"
+  if (!banana) return;
   const rect = banana.getBoundingClientRect();
   const el = document.createElement('div');
   el.textContent = '+' + state.tapPower;
@@ -148,7 +147,7 @@ if (banana) {
   banana.addEventListener('mousedown', doTap);
 }
 
-/* Energy regen: +1 каждые 2 сек (базово) */
+/* Energy regen: +1 каждые 2 сек */
 setInterval(() => {
   const regen = 1 + state.rechargeLevel * 0.5;
   if (state.energy < state.maxEnergy) {
