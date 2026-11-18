@@ -57,7 +57,7 @@ if (refParam && !state.invitedBy && String(refParam) !== String(state.userId)) {
   state.invitedBy = refParam;
   state.balance += 5000; // бонус новичку за вход по рефке
   save();
-  toast('🎁 Бонус за вход по ссылке: +5000 🍌');
+  toast('🎁 Бонус за вход по ссылке: +5000 🍯');
 }
 
 /* ============ HELPERS ============ */
@@ -86,19 +86,30 @@ function renderTopbar() {
 }
 
 /* ============ NAVIGATION ============ */
+function switchPage(pageName) {
+  // Снимаем активность со всех кнопок и страниц
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  // Активируем нужную страницу
+  const page = document.getElementById('page-' + pageName);
+  if (page) page.classList.add('active');
+
+  // Подсвечиваем кнопку в нижнем меню, если она там есть
+  const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
+  if (navBtn) navBtn.classList.add('active');
+
+  // Рендерим контент при переходе
+  if (pageName === 'mine') renderMine();
+  if (pageName === 'boosts') renderBoosts();
+  if (pageName === 'tasks') renderTasks();
+  if (pageName === 'shop') renderShop();
+  if (pageName === 'friends') renderFriends();
+}
+
+// Обработчик кликов по нижнему меню
 document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const page = document.getElementById('page-' + btn.dataset.page);
-    if (page) page.classList.add('active');
-    if (btn.dataset.page === 'mine') renderMine();
-    if (btn.dataset.page === 'boosts') renderBoosts();
-    if (btn.dataset.page === 'tasks') renderTasks();
-    if (btn.dataset.page === 'shop') renderShop();
-    if (btn.dataset.page === 'friends') renderFriends();
-  });
+  btn.addEventListener('click', () => switchPage(btn.dataset.page));
 });
 
 /* ============ TAP ============ */
@@ -116,17 +127,19 @@ function doTap(e) {
   const rect = banana.getBoundingClientRect();
   const el = document.createElement('div');
   el.textContent = '+' + state.tapPower;
-  el.style.cssText = `position:fixed;left:${e.clientX || rect.left + rect.width/2}px;top:${e.clientY || rect.top + rect.height/2}px;color:#ffd93b;font-weight:700;pointer-events:none;z-index:999;transition:all 0.6s ease;font-size:18px;`;
+  el.style.cssText = `position:fixed;left:${e.clientX || rect.left + rect.width/2}px;top:${e.clientY || rect.top + rect.height/2}px;color:#ffd93b;font-weight:700;pointer-events:none;z-index:999;transition:all 0.6s ease;font-size:20px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);`;
   document.body.appendChild(el);
   requestAnimationFrame(() => {
-    el.style.transform = 'translateY(-60px)';
+    el.style.transform = 'translateY(-80px)';
     el.style.opacity = '0';
   });
   setTimeout(() => el.remove(), 600);
 }
 
-banana.addEventListener('touchstart', (e) => { e.preventDefault(); doTap(e.touches[0]); }, { passive: false });
-banana.addEventListener('mousedown', doTap);
+if (banana) {
+  banana.addEventListener('touchstart', (e) => { e.preventDefault(); doTap(e.touches[0]); }, { passive: false });
+  banana.addEventListener('mousedown', doTap);
+}
 
 /* Energy regen: +1 каждые 2 сек (базово) */
 setInterval(() => {
@@ -152,6 +165,7 @@ function boostPrice(b) {
 
 function renderBoosts() {
   const list = document.getElementById('boostList');
+  if (!list) return;
   list.innerHTML = '';
   BOOSTS.forEach(b => {
     const price = boostPrice(b);
@@ -166,7 +180,7 @@ function renderBoosts() {
         <div class="card-title">${b.title} (ур. ${lvl})</div>
         <div class="card-desc">${b.desc}</div>
       </div>
-      <button class="btn primary" data-id="${b.id}">${fmt(price)} 🍌</button>
+      <button class="btn primary" data-id="${b.id}">${fmt(price)} 🍯</button>
     `;
     list.appendChild(card);
   });
@@ -174,7 +188,7 @@ function renderBoosts() {
     btn.addEventListener('click', () => {
       const b = BOOSTS.find(x => x.id === btn.dataset.id);
       const price = boostPrice(b);
-      if (state.balance < price) { toast('❌ Недостаточно бананов'); return; }
+      if (state.balance < price) { toast('❌ Недостаточно меда'); return; }
       state.balance -= price;
       state.boughtBoosts.push(b.id);
       b.apply();
@@ -187,13 +201,14 @@ function renderBoosts() {
 
 /* ============ TASKS ============ */
 const TASKS = [
-  { id: 'tg_channel', title: 'Подписаться на канал', desc: '+2000 🍌', reward: 2000, url: 'https://t.me/telegram' },
-  { id: 'invite_1', title: 'Пригласить 1 друга', desc: '+5000 🍌', reward: 5000, check: () => state.refCount >= 1 },
-  { id: 'tap_100', title: 'Сделать 100 тапов', desc: '+1000 🍌', reward: 1000, check: () => state.balance >= 100 },
+  { id: 'tg_channel', title: 'Подписаться на канал', desc: '+2000 🍯', reward: 2000, url: 'https://t.me/telegram' },
+  { id: 'invite_1', title: 'Пригласить 1 друга', desc: '+5000 🍯', reward: 5000, check: () => state.refCount >= 1 },
+  { id: 'tap_100', title: 'Сделать 100 тапов', desc: '+1000 🍯', reward: 1000, check: () => state.balance >= 100 },
 ];
 
 function renderTasks() {
   const list = document.getElementById('taskList');
+  if (!list) return;
   list.innerHTML = '';
   TASKS.forEach(t => {
     const done = state.completedTasks.includes(t.id);
@@ -220,7 +235,7 @@ function renderTasks() {
       state.completedTasks.push(t.id);
       save();
       renderTasks();
-      toast('🎉 Награда: +' + t.reward + ' 🍌');
+      toast('🎉 Награда: +' + t.reward + ' 🍯');
     });
   });
 }
@@ -228,45 +243,53 @@ function renderTasks() {
 /* ============ FRIENDS ============ */
 function renderFriends() {
   const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
-  document.getElementById('refLink').textContent = link;
-  document.getElementById('refCount').textContent = state.refCount;
+  const linkEl = document.getElementById('refLink');
+  const countEl = document.getElementById('refCount');
+  if (linkEl) linkEl.textContent = link;
+  if (countEl) countEl.textContent = state.refCount;
 }
 
-document.getElementById('inviteBtn').addEventListener('click', () => {
-  const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
-  if (navigator.share) {
-    navigator.share({ title: 'Banana Tap', text: 'Тапай бананы и получай BANANA!', url: link }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(link).then(() => toast('📋 Ссылка скопирована'));
-  }
-});
+const inviteBtn = document.getElementById('inviteBtn');
+if (inviteBtn) {
+  inviteBtn.addEventListener('click', () => {
+    const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
+    if (navigator.share) {
+      navigator.share({ title: 'Bee Tap', text: 'Тапай мед и получай награды!', url: link }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(link).then(() => toast('📋 Ссылка скопирована'));
+    }
+  });
+}
 
 /* ============ MINE / PASSIVE ============ */
 const MINE_ITEMS = [
-  { id: 'farm1', title: 'Банан-плантация', desc: '+50 🍌/час', price: 3000, rate: 50 },
-  { id: 'farm2', title: 'Банановый завод', desc: '+200 🍌/час', price: 10000, rate: 200 },
-  { id: 'farm3', title: 'Банановая империя', desc: '+1000 🍌/час', price: 40000, rate: 1000 },
+  { id: 'farm1', title: 'Медовая плантация', desc: '+50 🍯/час', price: 3000, rate: 50 },
+  { id: 'farm2', title: 'Пчелиный завод', desc: '+200 🍯/час', price: 10000, rate: 200 },
+  { id: 'farm3', title: 'Медовая империя', desc: '+1000 🍯/час', price: 40000, rate: 1000 },
 ];
 
 function getPassiveRate() {
-  return state.passiveLevel * 50; // упрощённо
+  return state.passiveLevel * 50; 
 }
 
 function renderMine() {
   const list = document.getElementById('mineList');
+  if (!list) return;
   const now = Date.now();
   const hours = (now - state.lastPassiveClaim) / 3600000;
   const earned = Math.floor(getPassiveRate() * hours);
+  
   list.innerHTML = `
     <div class="card">
       <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div>
       <div class="card-body">
-        <div class="card-title">Накоплено</div>
-        <div class="card-desc">${fmt(earned)} 🍌 за ${hours.toFixed(2)} ч</div>
+        <div class="card-title">Накоплено меда</div>
+        <div class="card-desc">${fmt(earned)} 🍯 за ${hours.toFixed(2)} ч</div>
       </div>
       <button class="btn primary" id="claimPassive">Забрать</button>
     </div>
   `;
+
   MINE_ITEMS.forEach(m => {
     const owned = state.boughtBoosts.includes(m.id);
     const card = document.createElement('div');
@@ -277,12 +300,12 @@ function renderMine() {
         <div class="card-title">${m.title}</div>
         <div class="card-desc">${m.desc}</div>
       </div>
-      <button class="btn ${owned ? '' : 'primary'}" ${owned ? 'disabled' : ''}>${owned ? 'Куплено' : fmt(m.price) + ' 🍌'}</button>
+      <button class="btn ${owned ? '' : 'primary'}" ${owned ? 'disabled' : ''}>${owned ? 'Куплено' : fmt(m.price) + ' 🍯'}</button>
     `;
     list.appendChild(card);
     if (!owned) {
       card.querySelector('button').addEventListener('click', () => {
-        if (state.balance < m.price) { toast('❌ Недостаточно бананов'); return; }
+        if (state.balance < m.price) { toast('❌ Недостаточно меда'); return; }
         state.balance -= m.price;
         state.boughtBoosts.push(m.id);
         state.passiveLevel += m.rate / 50;
@@ -292,14 +315,16 @@ function renderMine() {
       });
     }
   });
+
   const claimBtn = document.getElementById('claimPassive');
   if (claimBtn) {
     claimBtn.addEventListener('click', () => {
+      if (earned < 1) { toast('🐝 Мед еще не накопился'); return; }
       state.balance += earned;
       state.lastPassiveClaim = now;
       save();
       renderMine();
-      toast('💰 Получено: +' + fmt(earned) + ' 🍌');
+      toast('💰 Получено: +' + fmt(earned) + ' 🍯');
     });
   }
 }
@@ -312,6 +337,7 @@ const SHOP_ITEMS = [
 
 function renderShop() {
   const list = document.getElementById('shopList');
+  if (!list) return;
   list.innerHTML = '';
   SHOP_ITEMS.forEach(s => {
     const card = document.createElement('div');
@@ -322,11 +348,11 @@ function renderShop() {
         <div class="card-title">${s.title}</div>
         <div class="card-desc">${s.desc}</div>
       </div>
-      <button class="btn primary">${fmt(s.price)} 🍌</button>
+      <button class="btn primary">${fmt(s.price)} 🍯</button>
     `;
     list.appendChild(card);
     card.querySelector('button').addEventListener('click', () => {
-      if (state.balance < s.price) { toast('❌ Недостаточно бананов'); return; }
+      if (state.balance < s.price) { toast('❌ Недостаточно меда'); return; }
       state.balance -= s.price;
       s.action();
       save();
@@ -335,23 +361,49 @@ function renderShop() {
   });
 }
 
-/* ============ PROFILE ============ */
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if (confirm('Сбросить весь прогресс?')) {
-    localStorage.removeItem(SAVE_KEY);
-    state = { ...defaultState };
-    save();
-    renderTopbar();
-    renderBoosts();
-    renderTasks();
-    renderMine();
-    renderShop();
-    renderFriends();
-    toast('🔄 Прогресс сброшен');
+/* ============ PROFILE RESET ============ */
+const resetBtn = document.getElementById('resetBtn');
+if (resetBtn) {
+  resetBtn.addEventListener('click', () => {
+    if (confirm('Сбросить весь прогресс?')) {
+      localStorage.removeItem(SAVE_KEY);
+      state = { ...defaultState };
+      save();
+      renderTopbar();
+      renderBoosts();
+      renderTasks();
+      renderMine();
+      renderShop();
+      renderFriends();
+      switchPage('tap');
+      toast('🔄 Прогресс сброшен');
+    }
+  });
+}
+
+/* ============ BACKGROUND BEES ============ */
+function initBees() {
+  const container = document.getElementById('bg-bees');
+  if (!container) return;
+  
+  // Красивая SVG пчелка (силуэт)
+  const beeSVG = `<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>`;
+  
+  for (let i = 0; i < 15; i++) {
+    const bee = document.createElement('div');
+    bee.className = 'bee';
+    bee.innerHTML = beeSVG;
+    bee.style.left = Math.random() * 100 + '%';
+    bee.style.top = Math.random() * 100 + '%';
+    bee.style.width = (Math.random() * 25 + 15) + 'px'; // Размер от 15 до 40px
+    bee.style.animationDuration = (Math.random() * 15 + 15) + 's'; // Длительность полета 15-30 сек
+    bee.style.animationDelay = (Math.random() * 5) + 's';
+    container.appendChild(bee);
   }
-});
+}
 
 /* ============ INIT ============ */
+initBees();
 renderTopbar();
 renderBoosts();
 renderTasks();
