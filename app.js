@@ -110,7 +110,7 @@ function switchPage(pageName) {
   const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
   if (navBtn) navBtn.classList.add('active');
 
-  // Логика скрытия верхней панели для Апгрейдера
+  // Скрываем топбар на странице апгрейда
   if (pageName === 'boosts') {
     document.body.classList.add('on-upgrader');
     renderUpgrader();
