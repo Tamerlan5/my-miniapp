@@ -211,11 +211,10 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   position: absolute;
   top: -12px; 
   left: 50%;
-  margin-left: -16px; /* Центрирование по X */
+  margin-left: -16px; 
   width: 32px;
   height: 32px;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9));
-  /* Вращение строго относительно центра колеса */
   transform-origin: center 162px; 
 }
 
