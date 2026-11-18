@@ -110,8 +110,15 @@ function switchPage(pageName) {
   const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
   if (navBtn) navBtn.classList.add('active');
 
+  // Логика скрытия верхней панели для Апгрейдера
+  if (pageName === 'boosts') {
+    document.body.classList.add('on-upgrader');
+    renderUpgrader();
+  } else {
+    document.body.classList.remove('on-upgrader');
+  }
+
   if (pageName === 'mine') renderMine();
-  if (pageName === 'boosts') renderUpgrader();
   if (pageName === 'tasks') renderTasks();
   if (pageName === 'shop') renderShop();
   if (pageName === 'friends') renderFriends();
