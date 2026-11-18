@@ -18,7 +18,6 @@ const defaultState = {
   invitedBy: null,
   userName: 'Игрок',
   userId: null,
-  // Инвентарь для апгрейдера (сохраняется)
   inventory: [
     { id: 1, name: 'Яблоко', icon: '🍎', price: 100 },
     { id: 2, name: 'Банан', icon: '🍌', price: 500 },
@@ -36,7 +35,6 @@ function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return { ...defaultState };
     const parsed = JSON.parse(raw);
-    // Объединяем стейт, чтобы новые поля (например, inventory) появились, если их не было
     return { ...defaultState, ...parsed };
   } catch { return { ...defaultState }; }
 }
@@ -172,18 +170,15 @@ function renderUpgrader() {
   const list = document.getElementById('inventoryList');
   if (!list) return;
 
-  // Если выбранного предмета больше нет (сгорел)
   if (!state.inventory.find(i => i.id === selectedItem.id) && state.inventory.length > 0) {
     selectedItem = state.inventory[0];
-    document.getElementById('wheelIcon').textContent = selectedItem.icon;
   }
-  
-  // Если инвентарь пуст, создаем базовый
   if (state.inventory.length === 0) {
     state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
     selectedItem = state.inventory[0];
-    document.getElementById('wheelIcon').textContent = selectedItem.icon;
   }
+
+  document.getElementById('wheelIcon').textContent = selectedItem.icon;
 
   list.innerHTML = '';
   state.inventory.forEach(item => {
@@ -205,14 +200,14 @@ function renderUpgrader() {
 
 function updateChanceUI() {
   const chance = CHANCES[currentMult];
-  const chanceEl = document.getElementById('chanceText');
-  if (chanceEl) chanceEl.textContent = chance + '%';
+  document.getElementById('chanceText').textContent = chance + '%';
   
-  const arc = document.getElementById('wheelArc');
-  if (arc) {
-    const offset = 565 - (565 * (chance / 100));
-    arc.style.strokeDashoffset = offset;
-    arc.setAttribute('stroke', chance < 30 ? 'url(#gradRed)' : 'url(#gradYellow)');
+  const winSector = document.getElementById('winSector');
+  if (winSector) {
+    const circumference = 534;
+    const sectorLength = (chance / 100) * circumference;
+    winSector.setAttribute('stroke-dasharray', `${sectorLength} ${circumference}`);
+    winSector.setAttribute('stroke', chance < 30 ? 'url(#gradRed)' : 'url(#gradYellow)');
   }
 
   document.querySelectorAll('.mult-btn').forEach(btn => {
@@ -233,46 +228,56 @@ if (upgradeBtn) {
   upgradeBtn.addEventListener('click', () => {
     if (isUpgrading || state.inventory.length === 0) return;
     
+    isUpgrading = true;
     const chance = CHANCES[currentMult];
     const isWin = Math.random() * 100 < chance;
     
-    isUpgrading = true;
-    const wheelIcon = document.getElementById('wheelIcon');
-    const arc = document.getElementById('wheelArc');
+    let targetPercent;
+    if (isWin) {
+      targetPercent = Math.random() * (chance - 4) + 2; 
+    } else {
+      targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
+    }
     
-    wheelIcon.classList.add('spinning');
+    const targetDegree = (targetPercent / 100) * 360;
+    const totalRotation = 1800 + targetDegree;
+    
+    const arrow = document.getElementById('wheelArrow');
+    
+    arrow.classList.remove('spinning-arrow');
+    arrow.style.transform = `rotate(0deg)`;
     
     setTimeout(() => {
-      if (isWin) {
-        selectedItem.price = Math.floor(selectedItem.price * currentMult);
-        toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
-        arc.setAttribute('stroke', '#4cd964');
-      } else {
-        toast(`💥 Провал! Предмет сгорел.`);
-        const index = state.inventory.findIndex(i => i.id === selectedItem.id);
-        if (index > -1) state.inventory.splice(index, 1);
-        arc.setAttribute('stroke', '#ff4d4d');
-      }
+      arrow.classList.add('spinning-arrow');
+      arrow.style.transform = `rotate(${totalRotation}deg)`;
       
       setTimeout(() => {
-        wheelIcon.classList.remove('spinning');
         isUpgrading = false;
         
-        if (state.inventory.length === 0) {
-          state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+        if (isWin) {
+          selectedItem.price = Math.floor(selectedItem.price * currentMult);
+          toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
+        } else {
+          toast(`💥 Провал! Предмет сгорел.`);
+          const index = state.inventory.findIndex(i => i.id === selectedItem.id);
+          if (index > -1) state.inventory.splice(index, 1);
+          
+          if (state.inventory.length === 0) {
+            state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+          }
+          if (!state.inventory.find(i => i.id === selectedItem.id)) {
+            selectedItem = state.inventory[0];
+          }
         }
         
-        if (!state.inventory.find(i => i.id === selectedItem.id)) {
-          selectedItem = state.inventory[0];
-        }
-        wheelIcon.textContent = selectedItem.icon;
-        
-        save(); // Сохраняем состояние инвентаря!
+        save();
         renderUpgrader();
-        updateChanceUI();
-      }, 500);
-      
-    }, 800);
+        
+        arrow.classList.remove('spinning-arrow');
+        arrow.style.transform = `rotate(${targetDegree}deg)`;
+        
+      }, 3000);
+    }, 50);
   });
 }
 
