@@ -247,7 +247,7 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: -20px; /* Наезд стекла на колесо */
+  margin-top: -100px; /* Наезд стекла на колесо */
   z-index: 1;
   box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
 }
