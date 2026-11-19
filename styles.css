@@ -41,10 +41,12 @@ body.on-upgrader .topbar {
   pointer-events: none;
 }
 
-/* Убираем черные полосы снизу и добавляем затемнение сверху на апгрейдере */
 body.on-upgrader {
   background: radial-gradient(circle at top, #1a1714 0%, var(--bg) 100%);
-  padding-bottom: 0; /* Убираем отступ для полноэкранного режима */
+  padding-bottom: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden; 
 }
 
 .stat { 
@@ -143,26 +145,16 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 }
 
 /* =========================================
-   АПГРЕЙДЕР (Исправленный + Свечение)
+   АПГРЕЙДЕР
    ========================================= */
-body.on-upgrader {
-  background: radial-gradient(circle at top, #1a1714 0%, var(--bg) 100%);
-  padding-bottom: 0;
-  height: 100vh;
-  height: 100dvh;
-  /* Разрешаем вертикальный скролл внутри контейнера, но фиксируем body */
-  overflow: hidden; 
-}
-
 #page-boosts {
   padding: 0;
   position: relative;
   justify-content: flex-start;
   background: transparent;
   height: 100dvh; 
-  overflow-y: auto; /* Разрешаем скролл страницы, если не влезает */
+  overflow-y: auto;
   overflow-x: hidden;
-  /* Кастомный скроллбар (скрыт) */
   scrollbar-width: none;
 }
 #page-boosts::-webkit-scrollbar { display: none; }
@@ -173,10 +165,9 @@ body.on-upgrader {
   width: 100%;
   min-height: 100%;
   position: relative;
-  padding-bottom: 90px; /* Отступ под нижнее меню */
+  padding-bottom: 90px;
 }
 
-/* Верхняя секция (Колесо) */
 .wheel-top-section {
   display: flex;
   justify-content: center;
@@ -251,7 +242,6 @@ body.on-upgrader {
   transition: transform 3.5s cubic-bezier(0.1, 0.9, 0.1, 1);
 }
 
-/* Баннер */
 .banner-image-placeholder {
   position: relative;
   width: 100%;
@@ -281,7 +271,6 @@ body.on-upgrader {
   pointer-events: none;
 }
 
-/* Стеклянная панель */
 .glass-panel {
   flex: 1;
   background: rgba(20, 18, 16, 0.65);
@@ -300,15 +289,15 @@ body.on-upgrader {
   position: relative;
 }
 
-/* Желтое свечение по краям ПОД стеклянной панелью */
+/* Желтое свечение по краям ПОД панелью */
 .glass-panel::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 150px; /* Высота свечения */
+  height: 150px;
   background: radial-gradient(ellipse at bottom, rgba(255, 217, 59, 0.15) 0%, transparent 70%);
   pointer-events: none;
-  z-index: -1; /* Уходит под панель */
+  z-index: -1;
   border-bottom-left-radius: 36px;
   border-bottom-right-radius: 36px;
 }
@@ -449,14 +438,13 @@ body.on-upgrader {
   border-radius: 10px;
 }
 
-/* Исправленный инвентарь с горизонтальным скроллом */
 .inventory-list {
   display: flex;
   gap: 12px;
-  overflow-x: auto; /* Разрешаем скролл */
+  overflow-x: auto;
   padding-bottom: 10px;
   scrollbar-width: none;
-  touch-action: pan-x; /* Важно: разрешаем свайп по горизонтали */
+  touch-action: pan-x;
 }
 
 .inventory-list::-webkit-scrollbar { display: none; }
@@ -513,7 +501,6 @@ body.on-upgrader {
 .nav-btn.active:not(.center-btn) { color: var(--accent); }
 .nav-btn.active:not(.center-btn) svg { transform: translateY(-2px); }
 
-/* Центральная кнопка */
 .center-btn { position: relative; display: flex; justify-content: center; align-items: center; background: none; z-index: 1001; }
 .center-btn-inner {
   position: absolute; 
