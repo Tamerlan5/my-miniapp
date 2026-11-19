@@ -166,12 +166,110 @@ setInterval(() => {
   }
 }, 2000);
 
+/* ============ BOTTOM SHEET (Свайп панели) ============ */
+const glassPanel = document.getElementById('glassPanel');
+const dragHandle = document.getElementById('dragHandle');
+let isDraggingPanel = false;
+let startPanelY = 0;
+let currentPanelY = 0;
+let panelHeight = 0;
+const COLLAPSED_HEIGHT = 380; // Высота, когда панель "свернута" (видны только кнопки)
+
+// Функция для установки позиции панели
+function setPanelPosition(y) {
+  if (!glassPanel) return;
+  // Ограничиваем движение
+  const maxY = 0; // Полностью открыта
+  const minY = window.innerHeight - COLLAPSED_HEIGHT; // Свернута
+  
+  if (y < maxY) y = maxY;
+  if (y > minY) y = minY;
+  
+  currentPanelY = y;
+  
+  // Вычисляем transform: панель находится внизу, поэтому смещаем на разницу
+  // Изначально панель имеет высоту 100%, мы двигаем её вниз
+  const translateY = y - (window.innerHeight - glassPanel.offsetHeight);
+  // Но проще задать bottom и height
+  glassPanel.style.transform = `translateY(${y - minY + (window.innerHeight - COLLAPSED_HEIGHT) - (window.innerHeight - glassPanel.offsetHeight)}px)`; 
+}
+
+// Более простой подход через CSS transition и классы
+// Но для свайпа нужен плавный контроль. Сделаем через translateY.
+
+// Инициализация при загрузке
+if (glassPanel) {
+  // Устанавливаем начальное состояние (свернуто)
+  glassPanel.style.transform = `translateY(calc(100% - ${COLLAPSED_HEIGHT}px))`;
+  
+  dragHandle.addEventListener('touchstart', (e) => {
+    isDraggingPanel = true;
+    startPanelY = e.touches[0].clientY;
+    glassPanel.style.transition = 'none';
+  }, { passive: true });
+
+  dragHandle.addEventListener('mousedown', (e) => {
+    isDraggingPanel = true;
+    startPanelY = e.clientY;
+    glassPanel.style.transition = 'none';
+  });
+
+  const onPanelMove = (clientY) => {
+    if (!isDraggingPanel) return;
+    const deltaY = clientY - startPanelY;
+    
+    // Вычисляем новое смещение
+    // Начальное смещение = 100% - COLLAPSED_HEIGHT
+    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
+    let newOffset = baseOffset - deltaY;
+    
+    // Ограничиваем (0 = открыто, baseOffset = закрыто)
+    if (newOffset < 0) newOffset = 0;
+    if (newOffset > baseOffset) newOffset = baseOffset;
+    
+    glassPanel.style.transform = `translateY(${newOffset}px)`;
+    currentPanelY = newOffset;
+  };
+
+  const onPanelEnd = () => {
+    if (!isDraggingPanel) return;
+    isDraggingPanel = false;
+    glassPanel.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    
+    // Если протащили больше половины или с хорошей скоростью - открываем/закрываем
+    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
+    if (currentPanelY < baseOffset / 2) {
+      // Открываем
+      glassPanel.style.transform = `translateY(0px)`;
+    } else {
+      // Закрываем
+      glassPanel.style.transform = `translateY(${baseOffset}px)`;
+    }
+  };
+
+  document.addEventListener('touchmove', (e) => onPanelMove(e.touches[0].clientY), { passive: false });
+  document.addEventListener('mousemove', (e) => onPanelMove(e.clientY));
+  
+  document.addEventListener('touchend', onPanelEnd);
+  document.addEventListener('mouseup', onPanelEnd);
+  
+  // Пересчет при ресайзе
+  window.addEventListener('resize', () => {
+    if (!isDraggingPanel) {
+      const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
+      // Если панель открыта, оставляем открытой, если закрыта - закрытой
+      // (Упрощенно: просто сбрасываем в закрытое состояние при ресайзе)
+      glassPanel.style.transform = `translateY(${baseOffset}px)`;
+    }
+  });
+}
+
 /* ============ SLIDER LOGIC ============ */
 const sliderContainer = document.getElementById('sliderContainer');
 const sliderThumb = document.getElementById('sliderThumb');
 const sliderFill = document.getElementById('sliderFill');
 const sliderText = document.getElementById('sliderText');
-let isDragging = false;
+let isDraggingSlider = false;
 let startX = 0;
 
 function resetSlider() {
@@ -194,7 +292,7 @@ function resetSlider() {
 if (sliderThumb && sliderContainer) {
   sliderThumb.addEventListener('touchstart', (e) => {
     if (isUpgrading) return;
-    isDragging = true;
+    isDraggingSlider = true;
     startX = e.touches[0].clientX;
     sliderThumb.style.transition = 'none';
     sliderFill.style.transition = 'none';
@@ -203,7 +301,7 @@ if (sliderThumb && sliderContainer) {
 
   sliderThumb.addEventListener('mousedown', (e) => {
     if (isUpgrading) return;
-    isDragging = true;
+    isDraggingSlider = true;
     startX = e.clientX;
     sliderThumb.style.transition = 'none';
     sliderFill.style.transition = 'none';
@@ -211,7 +309,7 @@ if (sliderThumb && sliderContainer) {
   });
 
   const onMove = (clientX) => {
-    if (!isDragging || isUpgrading) return;
+    if (!isDraggingSlider || isUpgrading) return;
     const containerRect = sliderContainer.getBoundingClientRect();
     let newLeft = clientX - containerRect.left - 21; 
     
@@ -223,15 +321,15 @@ if (sliderThumb && sliderContainer) {
     sliderFill.style.width = fillPercent + '%';
 
     if (newLeft >= containerRect.width - 48) {
-      isDragging = false;
+      isDraggingSlider = false;
       resetSlider();
       triggerUpgrade(); 
     }
   };
 
   const onEnd = () => {
-    if (isDragging) {
-      isDragging = false;
+    if (isDraggingSlider) {
+      isDraggingSlider = false;
       resetSlider(); 
     }
   };
