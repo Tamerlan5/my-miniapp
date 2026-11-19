@@ -250,7 +250,8 @@ if (upgradeBtn) {
     }
     
     const targetDegree = (targetPercent / 100) * 360;
-    const totalRotation = 1800 + targetDegree;
+    // Больше оборотов для азарта (3000 градусов = ~8 кругов)
+    const totalRotation = 3000 + targetDegree;
     
     const arrow = document.getElementById('wheelArrow');
     
@@ -287,7 +288,7 @@ if (upgradeBtn) {
           arrow.classList.remove('spinning-arrow');
           arrow.style.transform = `rotate(${targetDegree}deg)`;
           
-        }, 5000);
+        }, 6000);
       }, 50);
     }
   });
