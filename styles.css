@@ -105,15 +105,15 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
    ========================================= */
 #page-boosts { padding: 0; position: relative; justify-content: flex-start; background: transparent; height: 100dvh; overflow: hidden; }
 
-/* Анимированный фон (волны) */
+/* Анимированное свечение (только сверху) */
 .bg-aurora {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0; width: 100%; height: 50vh; /* Ограничили высоту */
   overflow: hidden; z-index: 0; pointer-events: none;
 }
 .aurora-blob {
   position: absolute;
   width: 300px; height: 300px;
-  background: rgba(255, 217, 59, 0.08);
+  background: rgba(255, 217, 59, 0.1);
   border-radius: 50%;
   filter: blur(60px);
 }
@@ -151,8 +151,8 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 .glass-panel {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 100%; /* По умолчанию скрыта */
-  max-height: 90vh; /* Максимум на весь экран */
+  height: 100%;
+  max-height: 90vh;
   background: rgba(20, 18, 16, 0.85);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
@@ -165,24 +165,21 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   align-items: center;
   z-index: 10;
   box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-  transform: translateY(calc(100% - 380px)); /* Начальная позиция (видны только кнопки) */
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Убираем черную линию (если была) */
-.glass-panel::before {
-  display: none;
+  transform: translateY(calc(100% - 380px));
+  /* Убираем черную линию */
+  border-bottom: none;
 }
 
 /* Ручка для свайпа */
 .drag-handle {
   width: 100%;
-  height: 24px;
+  height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: grab;
-  touch-action: none;
+  /* КРИТИЧЕСКИ ВАЖНО для свайпа в Telegram */
+  touch-action: none; 
   margin-bottom: 10px;
 }
 .drag-line {
@@ -249,18 +246,18 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 .nav-btn.active:not(.center-btn) { color: var(--accent); }
 .nav-btn.active:not(.center-btn) svg { transform: translateY(-2px); }
 
-/* Центральная кнопка (теперь аккуратнее) */
+/* Центральная кнопка */
 .center-btn { position: relative; display: flex; justify-content: center; align-items: center; background: none; z-index: 1001; }
 .center-btn-inner {
   position: absolute; 
-  top: -8px; /* Опустили */
-  width: 60px; height: 60px; /* Чуть меньше */
+  top: -8px; 
+  width: 56px; height: 56px; 
   background: var(--accent-grad); border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 15px rgba(245, 183, 0, 0.5); border: 4px solid var(--bg); 
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.center-btn-inner svg { width: 28px; height: 28px; fill: #0a0908; }
+.center-btn-inner svg { width: 26px; height: 26px; fill: #0a0908; }
 .center-btn:active .center-btn-inner { transform: scale(0.92); }
 
 /* ============ ТОСТ ============ */
