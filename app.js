@@ -170,15 +170,24 @@ setInterval(() => {
 const sliderContainer = document.getElementById('sliderContainer');
 const sliderThumb = document.getElementById('sliderThumb');
 const sliderFill = document.getElementById('sliderFill');
+const sliderText = document.getElementById('sliderText');
 let isDragging = false;
 let startX = 0;
 
 function resetSlider() {
   if (sliderThumb) {
-    sliderThumb.style.transition = 'left 0.3s ease';
+    sliderThumb.style.transition = 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     sliderThumb.style.left = '4px';
-    if (sliderFill) sliderFill.style.width = '0%';
-    setTimeout(() => { if(sliderThumb) sliderThumb.style.transition = 'none'; }, 300);
+    if (sliderFill) {
+      sliderFill.style.transition = 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      sliderFill.style.width = '0%';
+    }
+    if (sliderText) sliderText.style.opacity = '1';
+    
+    setTimeout(() => { 
+      if(sliderThumb) sliderThumb.style.transition = 'none'; 
+      if(sliderFill) sliderFill.style.transition = 'none';
+    }, 300);
   }
 }
 
@@ -188,6 +197,8 @@ if (sliderThumb && sliderContainer) {
     isDragging = true;
     startX = e.touches[0].clientX;
     sliderThumb.style.transition = 'none';
+    sliderFill.style.transition = 'none';
+    if (sliderText) sliderText.style.opacity = '0';
   }, { passive: true });
 
   sliderThumb.addEventListener('mousedown', (e) => {
@@ -195,23 +206,25 @@ if (sliderThumb && sliderContainer) {
     isDragging = true;
     startX = e.clientX;
     sliderThumb.style.transition = 'none';
+    sliderFill.style.transition = 'none';
+    if (sliderText) sliderText.style.opacity = '0';
   });
 
   const onMove = (clientX) => {
     if (!isDragging || isUpgrading) return;
     const containerRect = sliderContainer.getBoundingClientRect();
-    let newLeft = clientX - containerRect.left - 24; // 24 = половина ширины ползунка
+    let newLeft = clientX - containerRect.left - 21; // 21 = половина ширины (42/2)
     
     // Ограничиваем движение
     if (newLeft < 4) newLeft = 4;
-    if (newLeft > containerRect.width - 52) newLeft = containerRect.width - 52;
+    if (newLeft > containerRect.width - 46) newLeft = containerRect.width - 46;
     
     sliderThumb.style.left = newLeft + 'px';
-    const fillPercent = ((newLeft - 4) / (containerRect.width - 52)) * 100;
+    const fillPercent = ((newLeft - 4) / (containerRect.width - 46)) * 100;
     sliderFill.style.width = fillPercent + '%';
 
     // Если дотянули до конца
-    if (newLeft >= containerRect.width - 54) {
+    if (newLeft >= containerRect.width - 48) {
       isDragging = false;
       resetSlider();
       triggerUpgrade(); // Запускаем процесс
@@ -356,7 +369,6 @@ function triggerUpgrade() {
     }, 50);
   }
 }
-
 /* ============ TASKS ============ */
 const TASKS = [
   { id: 'tg_channel', title: 'Подписаться на канал', desc: '+2000 🍯', reward: 2000, url: 'https://t.me/telegram' },
