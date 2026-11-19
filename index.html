@@ -50,7 +50,7 @@
     <section id="page-boosts" class="page">
       <div class="upgrader-layout">
         
-        <!-- Верхняя часть с колесом (возвышается над стеклом) -->
+        <!-- Верхняя часть с колесом -->
         <div class="wheel-top-section">
           <div class="wheel-container">
             <div class="wheel-glow"></div>
@@ -88,6 +88,13 @@
           </div>
         </div>
 
+        <!-- Место под картинку-баннер -->
+        <div class="banner-image-placeholder">
+          <!-- Сюда вы сможете вставить <img> -->
+          <!-- <img src="your-banner.png" alt="Banner"> -->
+          <div class="banner-overlay"></div>
+        </div>
+
         <!-- Стеклянная панель снизу -->
         <div class="glass-panel">
           <div class="upgrade-panel">
@@ -102,9 +109,16 @@
               Шанс успеха: <span id="chanceText">50%</span>
             </div>
             
-            <button class="btn primary upgrade-action-btn" id="upgradeBtn">
-              Улучшить
-            </button>
+            <!-- Кнопка-ползунок -->
+            <div class="slider-container" id="sliderContainer">
+              <div class="slider-track">
+                <div class="slider-fill" id="sliderFill"></div>
+                <span class="slider-text">Потяните для улучшения</span>
+                <div class="slider-thumb" id="sliderThumb">
+                  <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#0a0908"/></svg>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Инвентарь -->
@@ -174,7 +188,6 @@
     
     <button data-page="tap" class="nav-btn center-btn active">
       <div class="center-btn-inner">
-        <!-- Новая иконка (Сота/Монета) -->
         <svg viewBox="0 0 24 24">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#0a0908"/>
           <circle cx="12" cy="12" r="4" fill="#0a0908"/>
