@@ -172,36 +172,16 @@ const dragHandle = document.getElementById('dragHandle');
 let isDraggingPanel = false;
 let startPanelY = 0;
 let currentPanelY = 0;
-let panelHeight = 0;
-const COLLAPSED_HEIGHT = 380; // Высота, когда панель "свернута" (видны только кнопки)
+const COLLAPSED_HEIGHT = 380; // Высота видимой части
 
-// Функция для установки позиции панели
-function setPanelPosition(y) {
-  if (!glassPanel) return;
-  // Ограничиваем движение
-  const maxY = 0; // Полностью открыта
-  const minY = window.innerHeight - COLLAPSED_HEIGHT; // Свернута
-  
-  if (y < maxY) y = maxY;
-  if (y > minY) y = minY;
-  
-  currentPanelY = y;
-  
-  // Вычисляем transform: панель находится внизу, поэтому смещаем на разницу
-  // Изначально панель имеет высоту 100%, мы двигаем её вниз
-  const translateY = y - (window.innerHeight - glassPanel.offsetHeight);
-  // Но проще задать bottom и height
-  glassPanel.style.transform = `translateY(${y - minY + (window.innerHeight - COLLAPSED_HEIGHT) - (window.innerHeight - glassPanel.offsetHeight)}px)`; 
-}
+if (glassPanel && dragHandle) {
+  // Устанавливаем начальное положение (свернуто)
+  const initPanel = () => {
+    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
+    glassPanel.style.transform = `translateY(${baseOffset}px)`;
+  };
+  initPanel();
 
-// Более простой подход через CSS transition и классы
-// Но для свайпа нужен плавный контроль. Сделаем через translateY.
-
-// Инициализация при загрузке
-if (glassPanel) {
-  // Устанавливаем начальное состояние (свернуто)
-  glassPanel.style.transform = `translateY(calc(100% - ${COLLAPSED_HEIGHT}px))`;
-  
   dragHandle.addEventListener('touchstart', (e) => {
     isDraggingPanel = true;
     startPanelY = e.touches[0].clientY;
@@ -216,14 +196,12 @@ if (glassPanel) {
 
   const onPanelMove = (clientY) => {
     if (!isDraggingPanel) return;
+    
     const deltaY = clientY - startPanelY;
-    
-    // Вычисляем новое смещение
-    // Начальное смещение = 100% - COLLAPSED_HEIGHT
     const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-    let newOffset = baseOffset - deltaY;
+    let newOffset = baseOffset + deltaY;
     
-    // Ограничиваем (0 = открыто, baseOffset = закрыто)
+    // Ограничиваем движение (0 = открыто, baseOffset = закрыто)
     if (newOffset < 0) newOffset = 0;
     if (newOffset > baseOffset) newOffset = baseOffset;
     
@@ -234,32 +212,29 @@ if (glassPanel) {
   const onPanelEnd = () => {
     if (!isDraggingPanel) return;
     isDraggingPanel = false;
+    
     glassPanel.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     
-    // Если протащили больше половины или с хорошей скоростью - открываем/закрываем
     const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
+    // Если протащили больше половины - открываем, иначе закрываем
     if (currentPanelY < baseOffset / 2) {
-      // Открываем
       glassPanel.style.transform = `translateY(0px)`;
     } else {
-      // Закрываем
       glassPanel.style.transform = `translateY(${baseOffset}px)`;
     }
   };
 
   document.addEventListener('touchmove', (e) => onPanelMove(e.touches[0].clientY), { passive: false });
   document.addEventListener('mousemove', (e) => onPanelMove(e.clientY));
-  
   document.addEventListener('touchend', onPanelEnd);
   document.addEventListener('mouseup', onPanelEnd);
   
-  // Пересчет при ресайзе
+  // Пересчет при ресайзе (например, поворот экрана)
   window.addEventListener('resize', () => {
     if (!isDraggingPanel) {
-      const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-      // Если панель открыта, оставляем открытой, если закрыта - закрытой
-      // (Упрощенно: просто сбрасываем в закрытое состояние при ресайзе)
-      glassPanel.style.transform = `translateY(${baseOffset}px)`;
+      glassPanel.style.transition = 'none';
+      initPanel();
+      setTimeout(() => glassPanel.style.transition = 'transform 0.3s ease', 50);
     }
   });
 }
