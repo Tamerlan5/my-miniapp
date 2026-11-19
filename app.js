@@ -113,7 +113,6 @@ function switchPage(pageName) {
   if (pageName === 'boosts') {
     document.body.classList.add('on-upgrader');
     renderUpgrader();
-    resetSlider();
   } else {
     document.body.classList.remove('on-upgrader');
   }
@@ -165,156 +164,6 @@ setInterval(() => {
     save();
   }
 }, 2000);
-
-/* ============ BOTTOM SHEET (Свайп панели) ============ */
-const glassPanel = document.getElementById('glassPanel');
-const dragHandle = document.getElementById('dragHandle');
-let isDraggingPanel = false;
-let startPanelY = 0;
-let currentPanelY = 0;
-const COLLAPSED_HEIGHT = 380; // Высота видимой части
-
-if (glassPanel && dragHandle) {
-  // Устанавливаем начальное положение (свернуто)
-  const initPanel = () => {
-    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-    glassPanel.style.transform = `translateY(${baseOffset}px)`;
-  };
-  initPanel();
-
-  dragHandle.addEventListener('touchstart', (e) => {
-    isDraggingPanel = true;
-    startPanelY = e.touches[0].clientY;
-    glassPanel.style.transition = 'none';
-  }, { passive: true });
-
-  dragHandle.addEventListener('mousedown', (e) => {
-    isDraggingPanel = true;
-    startPanelY = e.clientY;
-    glassPanel.style.transition = 'none';
-  });
-
-  const onPanelMove = (clientY) => {
-    if (!isDraggingPanel) return;
-    
-    const deltaY = clientY - startPanelY;
-    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-    let newOffset = baseOffset + deltaY;
-    
-    // Ограничиваем движение (0 = открыто, baseOffset = закрыто)
-    if (newOffset < 0) newOffset = 0;
-    if (newOffset > baseOffset) newOffset = baseOffset;
-    
-    glassPanel.style.transform = `translateY(${newOffset}px)`;
-    currentPanelY = newOffset;
-  };
-
-  const onPanelEnd = () => {
-    if (!isDraggingPanel) return;
-    isDraggingPanel = false;
-    
-    glassPanel.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    
-    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-    // Если протащили больше половины - открываем, иначе закрываем
-    if (currentPanelY < baseOffset / 2) {
-      glassPanel.style.transform = `translateY(0px)`;
-    } else {
-      glassPanel.style.transform = `translateY(${baseOffset}px)`;
-    }
-  };
-
-  document.addEventListener('touchmove', (e) => onPanelMove(e.touches[0].clientY), { passive: false });
-  document.addEventListener('mousemove', (e) => onPanelMove(e.clientY));
-  document.addEventListener('touchend', onPanelEnd);
-  document.addEventListener('mouseup', onPanelEnd);
-  
-  // Пересчет при ресайзе (например, поворот экрана)
-  window.addEventListener('resize', () => {
-    if (!isDraggingPanel) {
-      glassPanel.style.transition = 'none';
-      initPanel();
-      setTimeout(() => glassPanel.style.transition = 'transform 0.3s ease', 50);
-    }
-  });
-}
-
-/* ============ SLIDER LOGIC ============ */
-const sliderContainer = document.getElementById('sliderContainer');
-const sliderThumb = document.getElementById('sliderThumb');
-const sliderFill = document.getElementById('sliderFill');
-const sliderText = document.getElementById('sliderText');
-let isDraggingSlider = false;
-let startX = 0;
-
-function resetSlider() {
-  if (sliderThumb) {
-    sliderThumb.style.transition = 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    sliderThumb.style.left = '4px';
-    if (sliderFill) {
-      sliderFill.style.transition = 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      sliderFill.style.width = '0%';
-    }
-    if (sliderText) sliderText.style.opacity = '1';
-    
-    setTimeout(() => { 
-      if(sliderThumb) sliderThumb.style.transition = 'none'; 
-      if(sliderFill) sliderFill.style.transition = 'none';
-    }, 300);
-  }
-}
-
-if (sliderThumb && sliderContainer) {
-  sliderThumb.addEventListener('touchstart', (e) => {
-    if (isUpgrading) return;
-    isDraggingSlider = true;
-    startX = e.touches[0].clientX;
-    sliderThumb.style.transition = 'none';
-    sliderFill.style.transition = 'none';
-    if (sliderText) sliderText.style.opacity = '0';
-  }, { passive: true });
-
-  sliderThumb.addEventListener('mousedown', (e) => {
-    if (isUpgrading) return;
-    isDraggingSlider = true;
-    startX = e.clientX;
-    sliderThumb.style.transition = 'none';
-    sliderFill.style.transition = 'none';
-    if (sliderText) sliderText.style.opacity = '0';
-  });
-
-  const onMove = (clientX) => {
-    if (!isDraggingSlider || isUpgrading) return;
-    const containerRect = sliderContainer.getBoundingClientRect();
-    let newLeft = clientX - containerRect.left - 21; 
-    
-    if (newLeft < 4) newLeft = 4;
-    if (newLeft > containerRect.width - 46) newLeft = containerRect.width - 46;
-    
-    sliderThumb.style.left = newLeft + 'px';
-    const fillPercent = ((newLeft - 4) / (containerRect.width - 46)) * 100;
-    sliderFill.style.width = fillPercent + '%';
-
-    if (newLeft >= containerRect.width - 48) {
-      isDraggingSlider = false;
-      resetSlider();
-      triggerUpgrade(); 
-    }
-  };
-
-  const onEnd = () => {
-    if (isDraggingSlider) {
-      isDraggingSlider = false;
-      resetSlider(); 
-    }
-  };
-
-  document.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive: false });
-  document.addEventListener('mousemove', (e) => onMove(e.clientX));
-  
-  document.addEventListener('touchend', onEnd);
-  document.addEventListener('mouseup', onEnd);
-}
 
 /* ============ UPGRADER LOGIC ============ */
 let selectedItem = state.inventory[0];
@@ -384,61 +233,65 @@ document.querySelectorAll('.mult-btn').forEach(btn => {
   });
 });
 
-function triggerUpgrade() {
-  if (isUpgrading || state.inventory.length === 0) return;
-  
-  isUpgrading = true;
-  const chance = CHANCES[currentMult];
-  const isWin = Math.random() * 100 < chance;
-  
-  let targetPercent;
-  if (isWin) {
-    targetPercent = Math.random() * (chance - 4) + 2; 
-  } else {
-    targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
-  }
-  
-  const targetDegree = (targetPercent / 100) * 360;
-  const totalRotation = 1800 + targetDegree;
-  
-  const arrow = document.getElementById('wheelArrow');
-  
-  if (arrow) {
-    arrow.classList.remove('spinning-arrow');
-    arrow.style.transform = `rotate(0deg)`;
+const upgradeBtn = document.getElementById('upgradeBtn');
+if (upgradeBtn) {
+  upgradeBtn.addEventListener('click', () => {
+    if (isUpgrading || state.inventory.length === 0) return;
     
-    setTimeout(() => {
-      arrow.classList.add('spinning-arrow');
-      arrow.style.transform = `rotate(${totalRotation}deg)`;
+    isUpgrading = true;
+    const chance = CHANCES[currentMult];
+    const isWin = Math.random() * 100 < chance;
+    
+    let targetPercent;
+    if (isWin) {
+      targetPercent = Math.random() * (chance - 4) + 2; 
+    } else {
+      targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
+    }
+    
+    const targetDegree = (targetPercent / 100) * 360;
+    // Больше оборотов для азарта (3000 градусов = ~8 кругов)
+    const totalRotation = 3000 + targetDegree;
+    
+    const arrow = document.getElementById('wheelArrow');
+    
+    if (arrow) {
+      arrow.classList.remove('spinning-arrow');
+      arrow.style.transform = `rotate(0deg)`;
       
       setTimeout(() => {
-        isUpgrading = false;
+        arrow.classList.add('spinning-arrow');
+        arrow.style.transform = `rotate(${totalRotation}deg)`;
         
-        if (isWin) {
-          selectedItem.price = Math.floor(selectedItem.price * currentMult);
-          toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
-        } else {
-          toast(`💥 Провал! Предмет сгорел.`);
-          const index = state.inventory.findIndex(i => i.id === selectedItem.id);
-          if (index > -1) state.inventory.splice(index, 1);
+        setTimeout(() => {
+          isUpgrading = false;
           
-          if (state.inventory.length === 0) {
-            state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+          if (isWin) {
+            selectedItem.price = Math.floor(selectedItem.price * currentMult);
+            toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
+          } else {
+            toast(`💥 Провал! Предмет сгорел.`);
+            const index = state.inventory.findIndex(i => i.id === selectedItem.id);
+            if (index > -1) state.inventory.splice(index, 1);
+            
+            if (state.inventory.length === 0) {
+              state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+            }
+            if (!state.inventory.find(i => i.id === selectedItem.id)) {
+              selectedItem = state.inventory[0];
+            }
           }
-          if (!state.inventory.find(i => i.id === selectedItem.id)) {
-            selectedItem = state.inventory[0];
-          }
-        }
-        
-        save();
-        renderUpgrader();
-        
-        arrow.classList.remove('spinning-arrow');
-        arrow.style.transform = `rotate(${targetDegree}deg)`;
-        
-      }, 3500);
-    }, 50);
-  }
+          
+          save();
+          renderUpgrader();
+          
+          arrow.classList.remove('spinning-arrow');
+          arrow.style.transform = `rotate(${targetDegree}deg)`;
+          
+        }, 6000);
+      }, 50);
+    }
+  });
 }
 
 /* ============ TASKS ============ */
