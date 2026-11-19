@@ -143,14 +143,14 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 }
 
 /* =========================================
-   АПГРЕЙДЕР (Исправленный)
+   АПГРЕЙДЕР (Исправленный + Свечение)
    ========================================= */
 body.on-upgrader {
   background: radial-gradient(circle at top, #1a1714 0%, var(--bg) 100%);
   padding-bottom: 0;
-  /* Фикс черной полосы сверху и запрет скролла */
   height: 100vh;
   height: 100dvh;
+  /* Разрешаем вертикальный скролл внутри контейнера, но фиксируем body */
   overflow: hidden; 
 }
 
@@ -159,23 +159,28 @@ body.on-upgrader {
   position: relative;
   justify-content: flex-start;
   background: transparent;
-  height: 100dvh; /* Используем 100dvh для мобильных */
-  overflow: hidden;
+  height: 100dvh; 
+  overflow-y: auto; /* Разрешаем скролл страницы, если не влезает */
+  overflow-x: hidden;
+  /* Кастомный скроллбар (скрыт) */
+  scrollbar-width: none;
 }
+#page-boosts::-webkit-scrollbar { display: none; }
 
 .upgrader-layout {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   position: relative;
+  padding-bottom: 90px; /* Отступ под нижнее меню */
 }
 
 /* Верхняя секция (Колесо) */
 .wheel-top-section {
   display: flex;
   justify-content: center;
-  padding-top: 60px; /* Отступ сверху, чтобы не липло к краю */
+  padding-top: 60px; 
   z-index: 3;
 }
 
@@ -239,14 +244,14 @@ body.on-upgrader {
   width: 32px;
   height: 32px;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9));
-  transform-origin: center 142px; /* Точка вращения для нового размера колеса */
+  transform-origin: center 142px; 
 }
 
 .spinning-arrow {
   transition: transform 3.5s cubic-bezier(0.1, 0.9, 0.1, 1);
 }
 
-/* Баннер под картинку */
+/* Баннер */
 .banner-image-placeholder {
   position: relative;
   width: 100%;
@@ -291,8 +296,21 @@ body.on-upgrader {
   align-items: center;
   z-index: 2;
   box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-  /* Убрали margin-top, чтобы не было черной линии */
   margin-top: 0; 
+  position: relative;
+}
+
+/* Желтое свечение по краям ПОД стеклянной панелью */
+.glass-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 150px; /* Высота свечения */
+  background: radial-gradient(ellipse at bottom, rgba(255, 217, 59, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1; /* Уходит под панель */
+  border-bottom-left-radius: 36px;
+  border-bottom-right-radius: 36px;
 }
 
 .upgrade-panel {
@@ -339,14 +357,12 @@ body.on-upgrader {
   font-size: 15px;
 }
 
-/* =========================================
-   Ползунок "Улучшить" (Новый дизайн)
-   ========================================= */
+/* Ползунок */
 .slider-container {
   width: 100%;
-  height: 52px; /* Сделали ниже */
+  height: 52px;
   background: rgba(255,255,255,0.03);
-  border-radius: 16px; /* Квадратные углы */
+  border-radius: 16px;
   position: relative;
   overflow: hidden;
   margin-bottom: 20px;
@@ -368,7 +384,7 @@ body.on-upgrader {
   background: var(--accent-grad);
   transition: width 0.1s linear;
   pointer-events: none;
-  border-radius: 16px 0 0 16px; /* Скругление только слева */
+  border-radius: 16px 0 0 16px;
 }
 
 .slider-text {
@@ -385,9 +401,9 @@ body.on-upgrader {
 .slider-thumb {
   position: absolute;
   top: 4px; left: 4px;
-  width: 42px; height: 42px; /* Меньше */
+  width: 42px; height: 42px;
   background: var(--accent-grad);
-  border-radius: 12px; /* Квадратный */
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -433,12 +449,14 @@ body.on-upgrader {
   border-radius: 10px;
 }
 
+/* Исправленный инвентарь с горизонтальным скроллом */
 .inventory-list {
   display: flex;
   gap: 12px;
-  overflow-x: auto;
+  overflow-x: auto; /* Разрешаем скролл */
   padding-bottom: 10px;
   scrollbar-width: none;
+  touch-action: pan-x; /* Важно: разрешаем свайп по горизонтали */
 }
 
 .inventory-list::-webkit-scrollbar { display: none; }
