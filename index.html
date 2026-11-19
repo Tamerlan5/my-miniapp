@@ -48,15 +48,9 @@
 
     <!-- UPGRADES (АПГРЕЙДЕР) -->
     <section id="page-boosts" class="page">
-      <!-- Анимированное свечение ТОЛЬКО в верхней части -->
-      <div class="bg-aurora">
-        <div class="aurora-blob blob-1"></div>
-        <div class="aurora-blob blob-2"></div>
-      </div>
-
       <div class="upgrader-layout">
         
-        <!-- Верхняя часть с колесом -->
+        <!-- Верхняя часть с колесом (возвышается над стеклом) -->
         <div class="wheel-top-section">
           <div class="wheel-container">
             <div class="wheel-glow"></div>
@@ -94,53 +88,32 @@
           </div>
         </div>
 
-        <!-- Место под картинку-баннер -->
-        <div class="banner-image-placeholder">
-          <!-- <img src="your-banner.png" alt="Banner"> -->
-          <div class="banner-overlay"></div>
-        </div>
-
-        <!-- Стеклянная панель снизу (Bottom Sheet) -->
-        <div class="glass-panel" id="glassPanel">
-          <div class="drag-handle" id="dragHandle">
-            <div class="drag-line"></div>
+        <!-- Стеклянная панель снизу -->
+        <div class="glass-panel">
+          <div class="upgrade-panel">
+            <div class="multiplier-grid">
+              <button class="mult-btn" data-mult="1.5">x1.5</button>
+              <button class="mult-btn active" data-mult="2">x2</button>
+              <button class="mult-btn" data-mult="5">x5</button>
+              <button class="mult-btn" data-mult="10">x10</button>
+            </div>
+            
+            <div class="chance-info">
+              Шанс успеха: <span id="chanceText">50%</span>
+            </div>
+            
+            <button class="btn primary upgrade-action-btn" id="upgradeBtn">
+              Улучшить
+            </button>
           </div>
-          
-          <div class="panel-content">
-            <div class="upgrade-panel">
-              <div class="multiplier-grid">
-                <button class="mult-btn" data-mult="1.5">x1.5</button>
-                <button class="mult-btn active" data-mult="2">x2</button>
-                <button class="mult-btn" data-mult="5">x5</button>
-                <button class="mult-btn" data-mult="10">x10</button>
-              </div>
-              
-              <div class="chance-info">
-                Шанс успеха: <span id="chanceText">50%</span>
-              </div>
-              
-              <!-- Кнопка-ползунок -->
-              <div class="slider-container" id="sliderContainer">
-                <div class="slider-track">
-                  <div class="slider-fill" id="sliderFill"></div>
-                  <span class="slider-text" id="sliderText">SWIPE TO UPGRADE</span>
-                  <div class="slider-thumb" id="sliderThumb">
-                    <svg viewBox="0 0 24 24">
-                      <path d="M5 12h14M12 5l7 7-7 7" stroke="#0a0908" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Инвентарь -->
-            <div class="inventory-section">
-              <div class="inventory-header">
-                <h3>Ваш инвентарь</h3>
-                <span class="items-count" id="invCount">6 предметов</span>
-              </div>
-              <div class="inventory-list" id="inventoryList"></div>
+          <!-- Инвентарь -->
+          <div class="inventory-section">
+            <div class="inventory-header">
+              <h3>Ваш инвентарь</h3>
+              <span class="items-count" id="invCount">6 предметов</span>
             </div>
+            <div class="inventory-list" id="inventoryList"></div>
           </div>
         </div>
 
@@ -201,8 +174,10 @@
     
     <button data-page="tap" class="nav-btn center-btn active">
       <div class="center-btn-inner">
+        <!-- Новая иконка (Сота/Монета) -->
         <svg viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#0a0908"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#0a0908"/>
+          <circle cx="12" cy="12" r="4" fill="#0a0908"/>
         </svg>
       </div>
     </button>
