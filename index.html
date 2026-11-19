@@ -48,70 +48,73 @@
 
     <!-- UPGRADES (АПГРЕЙДЕР) -->
     <section id="page-boosts" class="page">
-      <div class="upgrader-wrapper">
+      <div class="upgrader-layout">
         
-        <!-- Колесо -->
-        <div class="wheel-container">
-          <div class="wheel-glow"></div>
-          
-          <svg class="wheel-svg" viewBox="0 0 200 200">
-            <defs>
-              <linearGradient id="gradGrey" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#2a2826" />
-                <stop offset="100%" stop-color="#141312" />
-              </linearGradient>
-              <linearGradient id="gradYellow" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ffe066" />
-                <stop offset="100%" stop-color="#f5b700" />
-              </linearGradient>
-            </defs>
+        <!-- Верхняя часть с колесом (возвышается над стеклом) -->
+        <div class="wheel-top-section">
+          <div class="wheel-container">
+            <div class="wheel-glow"></div>
             
-            <circle cx="100" cy="100" r="90" fill="#0e0d0b" stroke="#1a1816" stroke-width="2"/>
-            <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="10"/>
-            
-            <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="10" 
-                    stroke-dasharray="0 534" stroke-dashoffset="0" 
-                    transform="rotate(-90 100 100)" 
-                    style="transition: stroke-dasharray 0.3s ease;"/>
-          </svg>
-          
-          <div class="wheel-center-item" id="wheelIcon">🍌</div>
-          
-          <!-- Стрелка (упрощенная для надежности) -->
-          <div class="wheel-arrow" id="wheelArrow">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 21L6 9h12L12 21z" fill="#ffd93b" />
-              <rect x="9" y="2" width="6" height="7" rx="2" fill="#ffd93b"/>
-              <path d="M12 21L6 9h12L12 21z" fill="none" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+            <svg class="wheel-svg" viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="gradGrey" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#2a2826" />
+                  <stop offset="100%" stop-color="#141312" />
+                </linearGradient>
+                <linearGradient id="gradYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffe066" />
+                  <stop offset="100%" stop-color="#f5b700" />
+                </linearGradient>
+              </defs>
+              
+              <circle cx="100" cy="100" r="90" fill="#0e0d0b" stroke="#1a1816" stroke-width="2"/>
+              <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gradGrey)" stroke-width="10"/>
+              
+              <circle id="winSector" cx="100" cy="100" r="85" fill="none" stroke="url(#gradYellow)" stroke-width="10" 
+                      stroke-dasharray="0 534" stroke-dashoffset="0" 
+                      transform="rotate(-90 100 100)" 
+                      style="transition: stroke-dasharray 0.3s ease;"/>
             </svg>
+            
+            <div class="wheel-center-item" id="wheelIcon">🍌</div>
+            
+            <div class="wheel-arrow" id="wheelArrow">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 21L6 9h12L12 21z" fill="#ffd93b" />
+                <rect x="9" y="2" width="6" height="7" rx="2" fill="#ffd93b"/>
+                <path d="M12 21L6 9h12L12 21z" fill="none" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+            </div>
           </div>
         </div>
 
-        <!-- Панель управления -->
-        <div class="upgrade-panel">
-          <div class="multiplier-grid">
-            <button class="mult-btn" data-mult="1.5">x1.5</button>
-            <button class="mult-btn active" data-mult="2">x2</button>
-            <button class="mult-btn" data-mult="5">x5</button>
-            <button class="mult-btn" data-mult="10">x10</button>
+        <!-- Стеклянная панель снизу -->
+        <div class="glass-panel">
+          <div class="upgrade-panel">
+            <div class="multiplier-grid">
+              <button class="mult-btn" data-mult="1.5">x1.5</button>
+              <button class="mult-btn active" data-mult="2">x2</button>
+              <button class="mult-btn" data-mult="5">x5</button>
+              <button class="mult-btn" data-mult="10">x10</button>
+            </div>
+            
+            <div class="chance-info">
+              Шанс успеха: <span id="chanceText">50%</span>
+            </div>
+            
+            <button class="btn primary upgrade-action-btn" id="upgradeBtn">
+              Улучшить
+            </button>
           </div>
-          
-          <div class="chance-info">
-            Шанс успеха: <span id="chanceText">50%</span>
-          </div>
-          
-          <button class="btn primary upgrade-action-btn" id="upgradeBtn">
-            Улучшить
-          </button>
-        </div>
 
-        <!-- Инвентарь -->
-        <div class="inventory-section">
-          <div class="inventory-header">
-            <h3>Ваш инвентарь</h3>
-            <span class="items-count" id="invCount">6 предметов</span>
+          <!-- Инвентарь -->
+          <div class="inventory-section">
+            <div class="inventory-header">
+              <h3>Ваш инвентарь</h3>
+              <span class="items-count" id="invCount">6 предметов</span>
+            </div>
+            <div class="inventory-list" id="inventoryList"></div>
           </div>
-          <div class="inventory-list" id="inventoryList"></div>
         </div>
 
       </div>
@@ -171,7 +174,11 @@
     
     <button data-page="tap" class="nav-btn center-btn active">
       <div class="center-btn-inner">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        <!-- Новая иконка (Сота/Монета) -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#0a0908"/>
+          <circle cx="12" cy="12" r="4" fill="#0a0908"/>
+        </svg>
       </div>
     </button>
 
