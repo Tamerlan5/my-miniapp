@@ -107,7 +107,7 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 
 /* Анимированное свечение (только сверху) */
 .bg-aurora {
-  position: absolute; top: 0; left: 0; width: 100%; height: 50vh; /* Ограничили высоту */
+  position: absolute; top: 0; left: 0; width: 100%; height: 50vh;
   overflow: hidden; z-index: 0; pointer-events: none;
 }
 .aurora-blob {
