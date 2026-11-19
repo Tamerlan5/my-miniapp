@@ -113,6 +113,7 @@ function switchPage(pageName) {
   if (pageName === 'boosts') {
     document.body.classList.add('on-upgrader');
     renderUpgrader();
+    resetSlider(); // Сброс ползунка при входе
   } else {
     document.body.classList.remove('on-upgrader');
   }
@@ -164,6 +165,72 @@ setInterval(() => {
     save();
   }
 }, 2000);
+
+/* ============ SLIDER LOGIC ============ */
+const sliderContainer = document.getElementById('sliderContainer');
+const sliderThumb = document.getElementById('sliderThumb');
+const sliderFill = document.getElementById('sliderFill');
+let isDragging = false;
+let startX = 0;
+
+function resetSlider() {
+  if (sliderThumb) {
+    sliderThumb.style.transition = 'left 0.3s ease';
+    sliderThumb.style.left = '4px';
+    if (sliderFill) sliderFill.style.width = '0%';
+    setTimeout(() => { if(sliderThumb) sliderThumb.style.transition = 'none'; }, 300);
+  }
+}
+
+if (sliderThumb && sliderContainer) {
+  sliderThumb.addEventListener('touchstart', (e) => {
+    if (isUpgrading) return;
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    sliderThumb.style.transition = 'none';
+  }, { passive: true });
+
+  sliderThumb.addEventListener('mousedown', (e) => {
+    if (isUpgrading) return;
+    isDragging = true;
+    startX = e.clientX;
+    sliderThumb.style.transition = 'none';
+  });
+
+  const onMove = (clientX) => {
+    if (!isDragging || isUpgrading) return;
+    const containerRect = sliderContainer.getBoundingClientRect();
+    let newLeft = clientX - containerRect.left - 24; // 24 = половина ширины ползунка
+    
+    // Ограничиваем движение
+    if (newLeft < 4) newLeft = 4;
+    if (newLeft > containerRect.width - 52) newLeft = containerRect.width - 52;
+    
+    sliderThumb.style.left = newLeft + 'px';
+    const fillPercent = ((newLeft - 4) / (containerRect.width - 52)) * 100;
+    sliderFill.style.width = fillPercent + '%';
+
+    // Если дотянули до конца
+    if (newLeft >= containerRect.width - 54) {
+      isDragging = false;
+      resetSlider();
+      triggerUpgrade(); // Запускаем процесс
+    }
+  };
+
+  const onEnd = () => {
+    if (isDragging) {
+      isDragging = false;
+      resetSlider(); // Если не дотянули, возвращаем назад
+    }
+  };
+
+  document.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive: false });
+  document.addEventListener('mousemove', (e) => onMove(e.clientX));
+  
+  document.addEventListener('touchend', onEnd);
+  document.addEventListener('mouseup', onEnd);
+}
 
 /* ============ UPGRADER LOGIC ============ */
 let selectedItem = state.inventory[0];
@@ -233,65 +300,61 @@ document.querySelectorAll('.mult-btn').forEach(btn => {
   });
 });
 
-const upgradeBtn = document.getElementById('upgradeBtn');
-if (upgradeBtn) {
-  upgradeBtn.addEventListener('click', () => {
-    if (isUpgrading || state.inventory.length === 0) return;
+function triggerUpgrade() {
+  if (isUpgrading || state.inventory.length === 0) return;
+  
+  isUpgrading = true;
+  const chance = CHANCES[currentMult];
+  const isWin = Math.random() * 100 < chance;
+  
+  let targetPercent;
+  if (isWin) {
+    targetPercent = Math.random() * (chance - 4) + 2; 
+  } else {
+    targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
+  }
+  
+  const targetDegree = (targetPercent / 100) * 360;
+  const totalRotation = 1800 + targetDegree;
+  
+  const arrow = document.getElementById('wheelArrow');
+  
+  if (arrow) {
+    arrow.classList.remove('spinning-arrow');
+    arrow.style.transform = `rotate(0deg)`;
     
-    isUpgrading = true;
-    const chance = CHANCES[currentMult];
-    const isWin = Math.random() * 100 < chance;
-    
-    let targetPercent;
-    if (isWin) {
-      targetPercent = Math.random() * (chance - 4) + 2; 
-    } else {
-      targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
-    }
-    
-    const targetDegree = (targetPercent / 100) * 360;
-    // Больше оборотов для азарта (3000 градусов = ~8 кругов)
-    const totalRotation = 3000 + targetDegree;
-    
-    const arrow = document.getElementById('wheelArrow');
-    
-    if (arrow) {
-      arrow.classList.remove('spinning-arrow');
-      arrow.style.transform = `rotate(0deg)`;
+    setTimeout(() => {
+      arrow.classList.add('spinning-arrow');
+      arrow.style.transform = `rotate(${totalRotation}deg)`;
       
       setTimeout(() => {
-        arrow.classList.add('spinning-arrow');
-        arrow.style.transform = `rotate(${totalRotation}deg)`;
+        isUpgrading = false;
         
-        setTimeout(() => {
-          isUpgrading = false;
+        if (isWin) {
+          selectedItem.price = Math.floor(selectedItem.price * currentMult);
+          toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
+        } else {
+          toast(`💥 Провал! Предмет сгорел.`);
+          const index = state.inventory.findIndex(i => i.id === selectedItem.id);
+          if (index > -1) state.inventory.splice(index, 1);
           
-          if (isWin) {
-            selectedItem.price = Math.floor(selectedItem.price * currentMult);
-            toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
-          } else {
-            toast(`💥 Провал! Предмет сгорел.`);
-            const index = state.inventory.findIndex(i => i.id === selectedItem.id);
-            if (index > -1) state.inventory.splice(index, 1);
-            
-            if (state.inventory.length === 0) {
-              state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
-            }
-            if (!state.inventory.find(i => i.id === selectedItem.id)) {
-              selectedItem = state.inventory[0];
-            }
+          if (state.inventory.length === 0) {
+            state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
           }
-          
-          save();
-          renderUpgrader();
-          
-          arrow.classList.remove('spinning-arrow');
-          arrow.style.transform = `rotate(${targetDegree}deg)`;
-          
-        }, 6000);
-      }, 50);
-    }
-  });
+          if (!state.inventory.find(i => i.id === selectedItem.id)) {
+            selectedItem = state.inventory[0];
+          }
+        }
+        
+        save();
+        renderUpgrader();
+        
+        arrow.classList.remove('spinning-arrow');
+        arrow.style.transform = `rotate(${targetDegree}deg)`;
+        
+      }, 3500);
+    }, 50);
+  }
 }
 
 /* ============ TASKS ============ */
