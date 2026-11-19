@@ -113,7 +113,7 @@ function switchPage(pageName) {
   if (pageName === 'boosts') {
     document.body.classList.add('on-upgrader');
     renderUpgrader();
-    resetSlider(); // Сброс ползунка при входе
+    resetSlider();
   } else {
     document.body.classList.remove('on-upgrader');
   }
@@ -213,9 +213,8 @@ if (sliderThumb && sliderContainer) {
   const onMove = (clientX) => {
     if (!isDragging || isUpgrading) return;
     const containerRect = sliderContainer.getBoundingClientRect();
-    let newLeft = clientX - containerRect.left - 21; // 21 = половина ширины (42/2)
+    let newLeft = clientX - containerRect.left - 21; 
     
-    // Ограничиваем движение
     if (newLeft < 4) newLeft = 4;
     if (newLeft > containerRect.width - 46) newLeft = containerRect.width - 46;
     
@@ -223,18 +222,17 @@ if (sliderThumb && sliderContainer) {
     const fillPercent = ((newLeft - 4) / (containerRect.width - 46)) * 100;
     sliderFill.style.width = fillPercent + '%';
 
-    // Если дотянули до конца
     if (newLeft >= containerRect.width - 48) {
       isDragging = false;
       resetSlider();
-      triggerUpgrade(); // Запускаем процесс
+      triggerUpgrade(); 
     }
   };
 
   const onEnd = () => {
     if (isDragging) {
       isDragging = false;
-      resetSlider(); // Если не дотянули, возвращаем назад
+      resetSlider(); 
     }
   };
 
@@ -369,6 +367,7 @@ function triggerUpgrade() {
     }, 50);
   }
 }
+
 /* ============ TASKS ============ */
 const TASKS = [
   { id: 'tg_channel', title: 'Подписаться на канал', desc: '+2000 🍯', reward: 2000, url: 'https://t.me/telegram' },
