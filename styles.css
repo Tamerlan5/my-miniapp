@@ -43,7 +43,7 @@ body.on-upgrader {
   padding-bottom: 0;
   height: 100vh;
   height: 100dvh;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .stat { 
@@ -75,6 +75,7 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 .banana:active { transform: scale(0.9); }
 .banana svg, .banana img { width: 100%; height: 100%; object-fit: contain; }
 .tap-hint { margin-top: 24px; color: var(--accent); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+.level-info { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
 .quick-actions { display: flex; gap: 12px; margin-top: 10px; }
 .action-card { flex: 1; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: transform 0.1s; backdrop-filter: blur(10px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
@@ -103,9 +104,16 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
 /* =========================================
    АПГРЕЙДЕР + СВАЙП (Bottom Sheet)
    ========================================= */
-#page-boosts { padding: 0; position: relative; justify-content: flex-start; background: transparent; height: 100dvh; overflow: hidden; }
+#page-boosts { 
+  padding: 0; 
+  position: relative; 
+  justify-content: flex-start; 
+  background: #0a0908; 
+  height: 100dvh; 
+  overflow: hidden; 
+}
 
-/* Анимированный фон (волны) */
+/* Анимированный фон */
 .bg-aurora {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   overflow: hidden; z-index: 0; pointer-events: none;
@@ -129,109 +137,220 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   100% { transform: translate(-50px, 80px) scale(0.9); }
 }
 
-.upgrader-layout { display: flex; flex-direction: column; width: 100%; height: 100%; position: relative; z-index: 1; }
+.upgrader-layout { 
+  display: flex; 
+  flex-direction: column; 
+  width: 100%; 
+  height: 100%; 
+  position: relative; 
+  z-index: 1; 
+}
 
-.wheel-top-section { display: flex; justify-content: center; padding-top: 50px; z-index: 3; }
-.wheel-container { position: relative; width: 260px; height: 260px; display: flex; justify-content: center; align-items: center; }
-.wheel-glow { position: absolute; width: 200px; height: 200px; background: rgba(255, 217, 59, 0.12); filter: blur(50px); border-radius: 50%; z-index: 0; pointer-events: none; }
-.wheel-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); }
-.wheel-center-item { position: relative; font-size: 70px; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.8)); animation: float 3s ease-in-out infinite; }
+.wheel-top-section { 
+  display: flex; 
+  justify-content: center; 
+  padding-top: calc(40px + env(safe-area-inset-top)); 
+  z-index: 3; 
+  transition: opacity 0.3s ease;
+}
+
+body.panel-expanded .wheel-top-section {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.wheel-container { 
+  position: relative; 
+  width: 260px; 
+  height: 260px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+/* Убрано лишнее свечение */
+.wheel-svg { 
+  position: absolute; 
+  top: 0; left: 0; 
+  width: 100%; height: 100%; 
+  z-index: 1; 
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.8)); 
+}
+
+.wheel-center-item { 
+  position: relative; 
+  font-size: 70px; 
+  z-index: 2; 
+  pointer-events: none; 
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.8)); 
+  animation: float 3s ease-in-out infinite; 
+}
 
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-.wheel-arrow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; transform: rotate(0deg); }
-.wheel-arrow svg { position: absolute; top: -12px; left: 50%; margin-left: -16px; width: 32px; height: 32px; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9)); transform-origin: center 142px; }
+.wheel-arrow { 
+  position: absolute; 
+  top: 0; left: 0; 
+  width: 100%; height: 100%; 
+  z-index: 3; 
+  pointer-events: none; 
+  transform: rotate(0deg); 
+}
+.wheel-arrow svg { 
+  position: absolute; 
+  top: -12px; 
+  left: 50%; 
+  margin-left: -16px; 
+  width: 32px; height: 32px; 
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.9)); 
+  transform-origin: center 142px; 
+}
 .spinning-arrow { transition: transform 3.5s cubic-bezier(0.1, 0.9, 0.1, 1); }
 
-.banner-image-placeholder { position: relative; width: 100%; height: 120px; margin-top: -30px; z-index: 1; overflow: hidden; }
-.banner-image-placeholder img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-.banner-overlay { position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to bottom, rgba(10,9,8,1) 0%, rgba(10,9,8,0) 100%); z-index: 2; pointer-events: none; }
-
-/* Выдвижная панель (Bottom Sheet) */
+/* ========== ВЫДВИЖНАЯ ПАНЕЛЬ ========== */
 .glass-panel {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 100%; /* По умолчанию скрыта */
-  max-height: 90vh; /* Максимум на весь экран */
-  background: rgba(20, 18, 16, 0.85);
+  height: 100%;
+  max-height: 100%;
+  background: rgba(16, 14, 12, 0.92);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-top-left-radius: 32px;
-  border-top-right-radius: 32px;
-  padding: 12px 16px 90px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  padding: 8px 16px 100px 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  z-index: 10;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-  transform: translateY(calc(100% - 380px)); /* Начальная позиция (видны только кнопки) */
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 20;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
+  transform: translateY(calc(100% - 370px));
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
-/* Убираем черную линию (если была) */
-.glass-panel::before {
-  display: none;
+.glass-panel.expanded {
+  transform: translateY(0) !important;
+  border-radius: 0;
 }
 
-/* Ручка для свайпа */
 .drag-handle {
   width: 100%;
-  height: 24px;
+  height: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: grab;
   touch-action: none;
-  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 .drag-line {
-  width: 40px;
+  width: 42px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 2px;
 }
 
 .panel-content {
   width: 100%;
-  max-width: 320px;
+  max-width: 420px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  flex: 1;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .panel-content::-webkit-scrollbar { display: none; }
 
-.upgrade-panel { width: 100%; margin-bottom: 20px; }
+.upgrade-panel { width: 100%; margin-bottom: 20px; flex-shrink: 0; }
 .multiplier-grid { display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; }
-.mult-btn { background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--muted); padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-.mult-btn.active { background: var(--accent-grad); color: #0a0908; box-shadow: 0 4px 15px rgba(245, 183, 0, 0.3); }
+.mult-btn { 
+  background: rgba(255,255,255,0.05); 
+  border: 1px solid transparent; 
+  color: var(--muted); 
+  padding: 8px 14px; 
+  border-radius: 10px; 
+  font-weight: 600; 
+  font-size: 12px; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+}
+.mult-btn.active { 
+  background: var(--accent-grad); 
+  color: #0a0908; 
+  box-shadow: 0 4px 15px rgba(245, 183, 0, 0.3); 
+}
 
 .chance-info { text-align: center; margin-bottom: 16px; font-weight: 500; color: var(--muted); font-size: 13px; }
 .chance-info span { color: var(--accent); font-weight: 700; font-size: 15px; }
 
 /* Ползунок */
-.slider-container { width: 100%; height: 52px; background: rgba(255,255,255,0.03); border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.08); }
+.slider-container { 
+  width: 100%; 
+  height: 52px; 
+  background: rgba(255,255,255,0.03); 
+  border-radius: 16px; 
+  position: relative; 
+  overflow: hidden; 
+  margin-bottom: 10px; 
+  border: 1px solid rgba(255,255,255,0.08); 
+}
 .slider-track { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .slider-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--accent-grad); transition: width 0.1s linear; pointer-events: none; border-radius: 16px 0 0 16px; }
 .slider-text { position: relative; z-index: 1; color: rgba(255, 255, 255, 0.4); font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; pointer-events: none; }
-.slider-thumb { position: absolute; top: 4px; left: 4px; width: 42px; height: 42px; background: var(--accent-grad); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(245, 183, 0, 0.4); cursor: grab; z-index: 2; touch-action: none; }
+.slider-thumb { 
+  position: absolute; 
+  top: 4px; left: 4px; 
+  width: 42px; height: 42px; 
+  background: var(--accent-grad); 
+  border-radius: 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0 4px 15px rgba(245, 183, 0, 0.4); 
+  cursor: grab; 
+  z-index: 2; 
+  touch-action: none; 
+}
 .slider-thumb:active { cursor: grabbing; transform: scale(0.95); }
 .slider-thumb svg { width: 20px; height: 20px; }
 
 /* Инвентарь */
-.inventory-section { width: 100%; margin-top: 10px; }
-.inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.inventory-section { width: 100%; margin-top: 8px; flex: 1; display: flex; flex-direction: column; }
+.inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-shrink: 0; }
 .inventory-header h3 { font-size: 16px; font-weight: 700; }
 .items-count { font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 10px; }
 
-.inventory-list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; touch-action: pan-x; }
-.inventory-list::-webkit-scrollbar { display: none; }
+.inventory-list { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 12px; 
+  padding-bottom: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
 
-.inv-item { flex-shrink: 0; width: 76px; background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; }
-.inv-item.selected { border-color: var(--accent); background: rgba(255, 217, 59, 0.08); box-shadow: 0 0 15px rgba(255, 217, 59, 0.15); }
+.inv-item { 
+  background: rgba(255,255,255,0.03); 
+  border: 2px solid rgba(255,255,255,0.05); 
+  border-radius: 16px; 
+  padding: 14px 8px; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 8px; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+}
+.inv-item.selected { 
+  border-color: var(--accent); 
+  background: rgba(255, 217, 59, 0.1); 
+  box-shadow: 0 0 15px rgba(255, 217, 59, 0.15); 
+}
 .inv-item-icon { font-size: 32px; }
-.inv-item-price { font-size: 11px; font-weight: 700; color: var(--muted); }
+.inv-item-price { font-size: 12px; font-weight: 700; color: var(--muted); }
 .inv-item.selected .inv-item-price { color: var(--accent); }
 
 /* ============ НИЖНЕЕ МЕНЮ ============ */
@@ -243,18 +362,25 @@ h2 { margin-bottom: 20px; font-size: 22px; font-weight: 700; letter-spacing: -0.
   border-radius: 36px; border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 1000;
   display: grid; grid-template-columns: 1fr 1fr 1.2fr 1fr 1fr; align-items: center; padding: 0 4px;
+  transition: opacity 0.3s, transform 0.3s;
 }
+
+body.on-upgrader .bottomnav {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(30px);
+}
+
 .nav-btn { background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: 600; cursor: pointer; height: 100%; width: 100%; transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
 .nav-btn svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.2s; }
 .nav-btn.active:not(.center-btn) { color: var(--accent); }
 .nav-btn.active:not(.center-btn) svg { transform: translateY(-2px); }
 
-/* Центральная кнопка (теперь аккуратнее) */
 .center-btn { position: relative; display: flex; justify-content: center; align-items: center; background: none; z-index: 1001; }
 .center-btn-inner {
   position: absolute; 
-  top: -8px; /* Опустили */
-  width: 60px; height: 60px; /* Чуть меньше */
+  top: -8px;
+  width: 60px; height: 60px;
   background: var(--accent-grad); border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 15px rgba(245, 183, 0, 0.5); border: 4px solid var(--bg); 
