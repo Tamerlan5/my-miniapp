@@ -32,6 +32,9 @@
           </svg>
         </div>
         <div class="tap-hint">ТАПАЙ ПО СОТАМ!</div>
+        <div class="level-info">
+          Уровень <span id="levelNum">1</span> • <span id="xpText">0/100</span> XP
+        </div>
       </div>
       
       <div class="quick-actions">
@@ -48,19 +51,15 @@
 
     <!-- UPGRADES (АПГРЕЙДЕР) -->
     <section id="page-boosts" class="page">
-      <!-- Анимированное свечение на фоне -->
       <div class="bg-aurora">
         <div class="aurora-blob blob-1"></div>
         <div class="aurora-blob blob-2"></div>
       </div>
 
       <div class="upgrader-layout">
-        
         <!-- Верхняя часть с колесом -->
         <div class="wheel-top-section">
           <div class="wheel-container">
-            <div class="wheel-glow"></div>
-            
             <svg class="wheel-svg" viewBox="0 0 200 200">
               <defs>
                 <linearGradient id="gradGrey" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -94,13 +93,7 @@
           </div>
         </div>
 
-        <!-- Место под картинку-баннер -->
-        <div class="banner-image-placeholder">
-          <!-- <img src="your-banner.png" alt="Banner"> -->
-          <div class="banner-overlay"></div>
-        </div>
-
-        <!-- Стеклянная панель снизу (Bottom Sheet) -->
+        <!-- Стеклянная панель (Bottom Sheet) -->
         <div class="glass-panel" id="glassPanel">
           <div class="drag-handle" id="dragHandle">
             <div class="drag-line"></div>
@@ -143,7 +136,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </section>
 
