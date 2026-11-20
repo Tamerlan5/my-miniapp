@@ -1,5 +1,5 @@
 /* ============ STATE ============ */
-const SAVE_KEY = 'banana_tap_save_v1';
+const SAVE_KEY = 'banana_tap_save_v2';
 
 const defaultState = {
   balance: 0,
@@ -7,10 +7,9 @@ const defaultState = {
   maxEnergy: 1000,
   tapPower: 1,
   level: 1,
-  multiTapLevel: 0,
-  energyLevel: 0,
-  rechargeLevel: 0,
-  passiveLevel: 0,
+  xp: 0,
+  totalTaps: 0,
+  passiveRate: 0,          // реальная ставка в мёде/час
   lastPassiveClaim: Date.now(),
   refCount: 0,
   completedTasks: [],
@@ -29,43 +28,58 @@ const defaultState = {
 };
 
 let state = load();
+let lastSave = 0;
+const SAVE_THROTTLE = 4000; // сохраняем не чаще чем раз в 4 секунды
 
 function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return { ...defaultState };
     const parsed = JSON.parse(raw);
+    // миграция со старой версии
+    if (parsed.passiveLevel !== undefined && parsed.passiveRate === undefined) {
+      parsed.passiveRate = (parsed.passiveLevel || 0) * 50;
+      delete parsed.passiveLevel;
+    }
     return { ...defaultState, ...parsed };
-  } catch { return { ...defaultState }; }
+  } catch {
+    return { ...defaultState };
+  }
 }
 
-function save() {
+function save(force = false) {
+  const now = Date.now();
+  if (!force && now - lastSave < SAVE_THROTTLE) return;
+  lastSave = now;
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   renderTopbar();
 }
 
-/* ============ TELEGRAM INIT ============ */
+/* ============ TELEGRAM ============ */
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
+  tg.setHeaderColor('#0a0908');
+  tg.setBackgroundColor('#0a0908');
+
   try {
     const u = tg.initDataUnsafe?.user;
     if (u) {
       state.userName = [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Игрок';
       state.userId = u.id;
-      save();
+      save(true);
     }
   } catch {}
 }
 
-// Referral from URL
+// Рефералка из URL
 const urlParams = new URLSearchParams(location.search);
-const refParam = urlParams.get('ref');
+const refParam = urlParams.get('ref') || (tg?.initDataUnsafe?.start_param || '').replace('ref_', '');
 if (refParam && !state.invitedBy && String(refParam) !== String(state.userId)) {
   state.invitedBy = refParam;
   state.balance += 5000;
-  save();
+  save(true);
   toast('🎁 Бонус за вход по ссылке: +5000 🍯');
 }
 
@@ -73,7 +87,7 @@ if (refParam && !state.invitedBy && String(refParam) !== String(state.userId)) {
 function fmt(n) {
   if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
   if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return Math.floor(n).toString();
 }
 
@@ -83,7 +97,31 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._tm);
-  t._tm = setTimeout(() => t.classList.remove('show'), 2200);
+  t._tm = setTimeout(() => t.classList.remove('show'), 2300);
+}
+
+function haptic(type = 'light') {
+  try {
+    if (tg?.HapticFeedback) {
+      if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+      else if (type === 'error') tg.HapticFeedback.notificationOccurred('error');
+      else if (type === 'medium') tg.HapticFeedback.impactOccurred('medium');
+      else tg.HapticFeedback.impactOccurred('light');
+    }
+  } catch {}
+}
+
+function addXP(amount) {
+  state.xp += amount;
+  const need = state.level * 100;
+  if (state.xp >= need) {
+    state.xp -= need;
+    state.level += 1;
+    state.tapPower += 1;
+    toast(`🎉 Новый уровень ${state.level}! Сила тапа +1`);
+    haptic('success');
+  }
+  renderTopbar();
 }
 
 /* ============ TOPBAR ============ */
@@ -92,18 +130,22 @@ function renderTopbar() {
   const enEl = document.getElementById('energy');
   const userEl = document.getElementById('userName');
   const idEl = document.getElementById('userId');
+  const levelEl = document.getElementById('levelNum');
+  const xpEl = document.getElementById('xpText');
 
   if (balEl) balEl.textContent = fmt(state.balance);
   if (enEl) enEl.textContent = `${Math.floor(state.energy)}/${state.maxEnergy}`;
   if (userEl) userEl.textContent = state.userName;
   if (idEl) idEl.textContent = state.userId ? 'ID: ' + state.userId : 'Гость';
+  if (levelEl) levelEl.textContent = state.level;
+  if (xpEl) xpEl.textContent = `${state.xp}/${state.level * 100}`;
 }
 
 /* ============ NAVIGATION ============ */
 function switchPage(pageName) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  
+
   const page = document.getElementById('page-' + pageName);
   if (page) page.classList.add('active');
 
@@ -112,10 +154,16 @@ function switchPage(pageName) {
 
   if (pageName === 'boosts') {
     document.body.classList.add('on-upgrader');
+    document.body.classList.remove('panel-expanded');
     renderUpgrader();
     resetSlider();
+    // сбрасываем панель в свёрнутое состояние
+    if (glassPanel) {
+      glassPanel.classList.remove('expanded');
+      glassPanel.style.transform = '';
+    }
   } else {
-    document.body.classList.remove('on-upgrader');
+    document.body.classList.remove('on-upgrader', 'panel-expanded');
   }
 
   if (pageName === 'mine') renderMine();
@@ -129,222 +177,220 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 });
 
 /* ============ TAP ============ */
-const tapZone = document.getElementById('tapZone');
 const banana = document.getElementById('banana');
+let lastTapTime = 0;
 
 function doTap(e) {
-  if (state.energy < 1) { toast('⚡ Энергия кончилась!'); return; }
+  const now = Date.now();
+  if (now - lastTapTime < 40) return; // анти-спам
+  lastTapTime = now;
+
+  if (state.energy < 1) {
+    toast('⚡ Энергия кончилась!');
+    haptic('error');
+    return;
+  }
+
   state.energy -= 1;
   state.balance += state.tapPower;
+  state.totalTaps += 1;
+  addXP(1);
   renderTopbar();
   save();
 
+  haptic('light');
+
   if (!banana) return;
   const rect = banana.getBoundingClientRect();
+  const x = e?.clientX || rect.left + rect.width / 2;
+  const y = e?.clientY || rect.top + rect.height / 2;
+
   const el = document.createElement('div');
   el.textContent = '+' + state.tapPower;
-  el.style.cssText = `position:fixed;left:${e.clientX || rect.left + rect.width/2}px;top:${e.clientY || rect.top + rect.height/2}px;color:#ffd93b;font-weight:700;pointer-events:none;z-index:999;transition:all 0.6s ease;font-size:20px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);`;
+  el.style.cssText = `
+    position:fixed; left:${x}px; top:${y}px;
+    color:#ffd93b; font-weight:700; pointer-events:none; z-index:999;
+    transition:all 0.55s ease; font-size:20px;
+    text-shadow:0 2px 10px rgba(0,0,0,0.5);
+  `;
   document.body.appendChild(el);
   requestAnimationFrame(() => {
     el.style.transform = 'translateY(-80px)';
     el.style.opacity = '0';
   });
-  setTimeout(() => el.remove(), 600);
+  setTimeout(() => el.remove(), 550);
 }
 
 if (banana) {
-  banana.addEventListener('touchstart', (e) => { e.preventDefault(); doTap(e.touches[0]); }, { passive: false });
+  banana.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    doTap(e.touches[0]);
+  }, { passive: false });
   banana.addEventListener('mousedown', doTap);
 }
 
+// Реген энергии
 setInterval(() => {
-  const regen = 1 + state.rechargeLevel * 0.5;
   if (state.energy < state.maxEnergy) {
-    state.energy = Math.min(state.maxEnergy, state.energy + regen);
+    state.energy = Math.min(state.maxEnergy, state.energy + 1);
     renderTopbar();
     save();
   }
 }, 2000);
 
-/* ============ BOTTOM SHEET (Свайп панели) ============ */
+/* ============ BOTTOM SHEET (панель апгрейдера) ============ */
 const glassPanel = document.getElementById('glassPanel');
 const dragHandle = document.getElementById('dragHandle');
 let isDraggingPanel = false;
-let startPanelY = 0;
-let currentPanelY = 0;
-let panelHeight = 0;
-const COLLAPSED_HEIGHT = 380; // Высота, когда панель "свернута" (видны только кнопки)
+let startY = 0;
+let startTransform = 0;
 
-// Функция для установки позиции панели
-function setPanelPosition(y) {
-  if (!glassPanel) return;
-  // Ограничиваем движение
-  const maxY = 0; // Полностью открыта
-  const minY = window.innerHeight - COLLAPSED_HEIGHT; // Свернута
-  
-  if (y < maxY) y = maxY;
-  if (y > minY) y = minY;
-  
-  currentPanelY = y;
-  
-  // Вычисляем transform: панель находится внизу, поэтому смещаем на разницу
-  // Изначально панель имеет высоту 100%, мы двигаем её вниз
-  const translateY = y - (window.innerHeight - glassPanel.offsetHeight);
-  // Но проще задать bottom и height
-  glassPanel.style.transform = `translateY(${y - minY + (window.innerHeight - COLLAPSED_HEIGHT) - (window.innerHeight - glassPanel.offsetHeight)}px)`; 
+function getCollapsedOffset() {
+  return window.innerHeight - 370;
 }
 
-// Более простой подход через CSS transition и классы
-// Но для свайпа нужен плавный контроль. Сделаем через translateY.
-
-// Инициализация при загрузке
-if (glassPanel) {
-  // Устанавливаем начальное состояние (свернуто)
-  glassPanel.style.transform = `translateY(calc(100% - ${COLLAPSED_HEIGHT}px))`;
-  
-  dragHandle.addEventListener('touchstart', (e) => {
+if (glassPanel && dragHandle) {
+  const onStart = (clientY) => {
     isDraggingPanel = true;
-    startPanelY = e.touches[0].clientY;
+    startY = clientY;
+    const style = window.getComputedStyle(glassPanel);
+    const matrix = new DOMMatrix(style.transform);
+    startTransform = matrix.m42; // translateY
     glassPanel.style.transition = 'none';
-  }, { passive: true });
-
-  dragHandle.addEventListener('mousedown', (e) => {
-    isDraggingPanel = true;
-    startPanelY = e.clientY;
-    glassPanel.style.transition = 'none';
-  });
-
-  const onPanelMove = (clientY) => {
-    if (!isDraggingPanel) return;
-    const deltaY = clientY - startPanelY;
-    
-    // Вычисляем новое смещение
-    // Начальное смещение = 100% - COLLAPSED_HEIGHT
-    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-    let newOffset = baseOffset - deltaY;
-    
-    // Ограничиваем (0 = открыто, baseOffset = закрыто)
-    if (newOffset < 0) newOffset = 0;
-    if (newOffset > baseOffset) newOffset = baseOffset;
-    
-    glassPanel.style.transform = `translateY(${newOffset}px)`;
-    currentPanelY = newOffset;
   };
 
-  const onPanelEnd = () => {
+  const onMove = (clientY) => {
+    if (!isDraggingPanel) return;
+    const delta = clientY - startY;
+    let newY = startTransform + delta;
+
+    // ограничения
+    const maxY = getCollapsedOffset(); // свёрнуто
+    const minY = 0;                     // полностью открыто
+
+    if (newY < minY) newY = minY;
+    if (newY > maxY) newY = maxY;
+
+    glassPanel.style.transform = `translateY(${newY}px)`;
+  };
+
+  const onEnd = () => {
     if (!isDraggingPanel) return;
     isDraggingPanel = false;
-    glassPanel.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    
-    // Если протащили больше половины или с хорошей скоростью - открываем/закрываем
-    const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-    if (currentPanelY < baseOffset / 2) {
-      // Открываем
-      glassPanel.style.transform = `translateY(0px)`;
+    glassPanel.style.transition = 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)';
+
+    const style = window.getComputedStyle(glassPanel);
+    const matrix = new DOMMatrix(style.transform);
+    const currentY = matrix.m42;
+    const mid = getCollapsedOffset() / 2;
+
+    if (currentY < mid) {
+      // открываем полностью
+      glassPanel.style.transform = 'translateY(0px)';
+      glassPanel.classList.add('expanded');
+      document.body.classList.add('panel-expanded');
     } else {
-      // Закрываем
-      glassPanel.style.transform = `translateY(${baseOffset}px)`;
+      // сворачиваем
+      glassPanel.style.transform = `translateY(${getCollapsedOffset()}px)`;
+      glassPanel.classList.remove('expanded');
+      document.body.classList.remove('panel-expanded');
     }
   };
 
-  document.addEventListener('touchmove', (e) => onPanelMove(e.touches[0].clientY), { passive: false });
-  document.addEventListener('mousemove', (e) => onPanelMove(e.clientY));
-  
-  document.addEventListener('touchend', onPanelEnd);
-  document.addEventListener('mouseup', onPanelEnd);
-  
-  // Пересчет при ресайзе
-  window.addEventListener('resize', () => {
-    if (!isDraggingPanel) {
-      const baseOffset = glassPanel.offsetHeight - COLLAPSED_HEIGHT;
-      // Если панель открыта, оставляем открытой, если закрыта - закрытой
-      // (Упрощенно: просто сбрасываем в закрытое состояние при ресайзе)
-      glassPanel.style.transform = `translateY(${baseOffset}px)`;
+  dragHandle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
+  dragHandle.addEventListener('mousedown', e => onStart(e.clientY));
+
+  document.addEventListener('touchmove', e => {
+    if (isDraggingPanel) {
+      e.preventDefault();
+      onMove(e.touches[0].clientY);
     }
+  }, { passive: false });
+
+  document.addEventListener('mousemove', e => {
+    if (isDraggingPanel) onMove(e.clientY);
   });
+
+  document.addEventListener('touchend', onEnd);
+  document.addEventListener('mouseup', onEnd);
+
+  // начальное положение
+  glassPanel.style.transform = `translateY(${getCollapsedOffset()}px)`;
 }
 
-/* ============ SLIDER LOGIC ============ */
+/* ============ SLIDER ============ */
 const sliderContainer = document.getElementById('sliderContainer');
 const sliderThumb = document.getElementById('sliderThumb');
 const sliderFill = document.getElementById('sliderFill');
 const sliderText = document.getElementById('sliderText');
 let isDraggingSlider = false;
-let startX = 0;
+let isUpgrading = false;
 
 function resetSlider() {
-  if (sliderThumb) {
-    sliderThumb.style.transition = 'left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    sliderThumb.style.left = '4px';
-    if (sliderFill) {
-      sliderFill.style.transition = 'width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      sliderFill.style.width = '0%';
-    }
-    if (sliderText) sliderText.style.opacity = '1';
-    
-    setTimeout(() => { 
-      if(sliderThumb) sliderThumb.style.transition = 'none'; 
-      if(sliderFill) sliderFill.style.transition = 'none';
-    }, 300);
+  if (!sliderThumb) return;
+  sliderThumb.style.transition = 'left 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
+  sliderThumb.style.left = '4px';
+  if (sliderFill) {
+    sliderFill.style.transition = 'width 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
+    sliderFill.style.width = '0%';
   }
+  if (sliderText) sliderText.style.opacity = '1';
+  setTimeout(() => {
+    if (sliderThumb) sliderThumb.style.transition = 'none';
+    if (sliderFill) sliderFill.style.transition = 'none';
+  }, 300);
 }
 
 if (sliderThumb && sliderContainer) {
-  sliderThumb.addEventListener('touchstart', (e) => {
+  const startDrag = (clientX) => {
     if (isUpgrading) return;
     isDraggingSlider = true;
-    startX = e.touches[0].clientX;
     sliderThumb.style.transition = 'none';
     sliderFill.style.transition = 'none';
     if (sliderText) sliderText.style.opacity = '0';
-  }, { passive: true });
+  };
 
-  sliderThumb.addEventListener('mousedown', (e) => {
-    if (isUpgrading) return;
-    isDraggingSlider = true;
-    startX = e.clientX;
-    sliderThumb.style.transition = 'none';
-    sliderFill.style.transition = 'none';
-    if (sliderText) sliderText.style.opacity = '0';
-  });
-
-  const onMove = (clientX) => {
+  const moveDrag = (clientX) => {
     if (!isDraggingSlider || isUpgrading) return;
-    const containerRect = sliderContainer.getBoundingClientRect();
-    let newLeft = clientX - containerRect.left - 21; 
-    
-    if (newLeft < 4) newLeft = 4;
-    if (newLeft > containerRect.width - 46) newLeft = containerRect.width - 46;
-    
-    sliderThumb.style.left = newLeft + 'px';
-    const fillPercent = ((newLeft - 4) / (containerRect.width - 46)) * 100;
-    sliderFill.style.width = fillPercent + '%';
+    const rect = sliderContainer.getBoundingClientRect();
+    let left = clientX - rect.left - 21;
+    if (left < 4) left = 4;
+    if (left > rect.width - 46) left = rect.width - 46;
 
-    if (newLeft >= containerRect.width - 48) {
+    sliderThumb.style.left = left + 'px';
+    const percent = ((left - 4) / (rect.width - 46)) * 100;
+    sliderFill.style.width = percent + '%';
+
+    if (left >= rect.width - 48) {
       isDraggingSlider = false;
       resetSlider();
-      triggerUpgrade(); 
+      triggerUpgrade();
     }
   };
 
-  const onEnd = () => {
+  const endDrag = () => {
     if (isDraggingSlider) {
       isDraggingSlider = false;
-      resetSlider(); 
+      resetSlider();
     }
   };
 
-  document.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX), { passive: false });
-  document.addEventListener('mousemove', (e) => onMove(e.clientX));
-  
-  document.addEventListener('touchend', onEnd);
-  document.addEventListener('mouseup', onEnd);
+  sliderThumb.addEventListener('touchstart', e => startDrag(e.touches[0].clientX), { passive: true });
+  sliderThumb.addEventListener('mousedown', e => startDrag(e.clientX));
+
+  document.addEventListener('touchmove', e => {
+    if (isDraggingSlider) moveDrag(e.touches[0].clientX);
+  }, { passive: false });
+  document.addEventListener('mousemove', e => {
+    if (isDraggingSlider) moveDrag(e.clientX);
+  });
+  document.addEventListener('touchend', endDrag);
+  document.addEventListener('mouseup', endDrag);
 }
 
-/* ============ UPGRADER LOGIC ============ */
-let selectedItem = state.inventory[0];
+/* ============ UPGRADER ============ */
+let selectedItem = state.inventory[0] || null;
 let currentMult = 2;
-let isUpgrading = false;
 
 const CHANCES = { 1.5: 70, 2: 50, 5: 20, 10: 10 };
 
@@ -352,24 +398,26 @@ function renderUpgrader() {
   const list = document.getElementById('inventoryList');
   if (!list) return;
 
-  if (!state.inventory.find(i => i.id === selectedItem.id) && state.inventory.length > 0) {
-    selectedItem = state.inventory[0];
+  // защита от удалённого selectedItem
+  if (!state.inventory.find(i => i.id === selectedItem?.id)) {
+    selectedItem = state.inventory[0] || null;
   }
+
   if (state.inventory.length === 0) {
     state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
     selectedItem = state.inventory[0];
   }
 
   const wIcon = document.getElementById('wheelIcon');
-  if (wIcon) wIcon.textContent = selectedItem.icon;
-  
+  if (wIcon && selectedItem) wIcon.textContent = selectedItem.icon;
+
   const invCount = document.getElementById('invCount');
-  if (invCount) invCount.textContent = `${state.inventory.length} предметов`;
+  if (invCount) invCount.textContent = `${state.inventory.length} предмет${state.inventory.length === 1 ? '' : state.inventory.length < 5 ? 'а' : 'ов'}`;
 
   list.innerHTML = '';
   state.inventory.forEach(item => {
     const el = document.createElement('div');
-    el.className = `inv-item ${selectedItem.id === item.id ? 'selected' : ''}`;
+    el.className = `inv-item ${selectedItem?.id === item.id ? 'selected' : ''}`;
     el.innerHTML = `
       <div class="inv-item-icon">${item.icon}</div>
       <div class="inv-item-price">${fmt(item.price)}</div>
@@ -379,6 +427,7 @@ function renderUpgrader() {
       selectedItem = item;
       if (wIcon) wIcon.textContent = item.icon;
       renderUpgrader();
+      haptic('light');
     });
     list.appendChild(el);
   });
@@ -388,7 +437,7 @@ function updateChanceUI() {
   const chance = CHANCES[currentMult];
   const chanceText = document.getElementById('chanceText');
   if (chanceText) chanceText.textContent = chance + '%';
-  
+
   const winSector = document.getElementById('winSector');
   if (winSector) {
     const circumference = 534;
@@ -406,77 +455,82 @@ document.querySelectorAll('.mult-btn').forEach(btn => {
     if (isUpgrading) return;
     currentMult = parseFloat(btn.dataset.mult);
     updateChanceUI();
+    haptic('light');
   });
 });
 
 function triggerUpgrade() {
-  if (isUpgrading || state.inventory.length === 0) return;
-  
+  if (isUpgrading || !selectedItem || state.inventory.length === 0) return;
+
   isUpgrading = true;
   const chance = CHANCES[currentMult];
   const isWin = Math.random() * 100 < chance;
-  
+
   let targetPercent;
   if (isWin) {
-    targetPercent = Math.random() * (chance - 4) + 2; 
+    targetPercent = Math.random() * (chance - 6) + 3;
   } else {
-    targetPercent = chance + Math.random() * (100 - chance - 2) + 1;
+    targetPercent = chance + Math.random() * (100 - chance - 3) + 1;
   }
-  
+
   const targetDegree = (targetPercent / 100) * 360;
   const totalRotation = 1800 + targetDegree;
-  
+
   const arrow = document.getElementById('wheelArrow');
-  
-  if (arrow) {
-    arrow.classList.remove('spinning-arrow');
-    arrow.style.transform = `rotate(0deg)`;
-    
-    setTimeout(() => {
-      arrow.classList.add('spinning-arrow');
-      arrow.style.transform = `rotate(${totalRotation}deg)`;
-      
-      setTimeout(() => {
-        isUpgrading = false;
-        
-        if (isWin) {
-          selectedItem.price = Math.floor(selectedItem.price * currentMult);
-          toast(`🎉 Успех! Теперь ${selectedItem.name} стоит ${fmt(selectedItem.price)}`);
-        } else {
-          toast(`💥 Провал! Предмет сгорел.`);
-          const index = state.inventory.findIndex(i => i.id === selectedItem.id);
-          if (index > -1) state.inventory.splice(index, 1);
-          
-          if (state.inventory.length === 0) {
-            state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
-          }
-          if (!state.inventory.find(i => i.id === selectedItem.id)) {
-            selectedItem = state.inventory[0];
-          }
-        }
-        
-        save();
-        renderUpgrader();
-        
-        arrow.classList.remove('spinning-arrow');
-        arrow.style.transform = `rotate(${targetDegree}deg)`;
-        
-      }, 3500);
-    }, 50);
+  if (!arrow) {
+    isUpgrading = false;
+    return;
   }
+
+  arrow.classList.remove('spinning-arrow');
+  arrow.style.transform = 'rotate(0deg)';
+
+  setTimeout(() => {
+    arrow.classList.add('spinning-arrow');
+    arrow.style.transform = `rotate(${totalRotation}deg)`;
+
+    setTimeout(() => {
+      isUpgrading = false;
+
+      if (isWin) {
+        selectedItem.price = Math.floor(selectedItem.price * currentMult);
+        toast(`🎉 Успех! ${selectedItem.name} теперь стоит ${fmt(selectedItem.price)}`);
+        haptic('success');
+      } else {
+        toast(`💥 Провал! ${selectedItem.name} сгорел`);
+        haptic('error');
+        const index = state.inventory.findIndex(i => i.id === selectedItem.id);
+        if (index > -1) state.inventory.splice(index, 1);
+
+        if (state.inventory.length === 0) {
+          state.inventory.push({ id: Date.now(), name: 'Базовый банан', icon: '🍌', price: 100 });
+        }
+        selectedItem = state.inventory[0];
+      }
+
+      save(true);
+      renderUpgrader();
+
+      arrow.classList.remove('spinning-arrow');
+      arrow.style.transform = `rotate(${targetDegree}deg)`;
+    }, 3500);
+  }, 40);
 }
 
 /* ============ TASKS ============ */
 const TASKS = [
   { id: 'tg_channel', title: 'Подписаться на канал', desc: '+2000 🍯', reward: 2000, url: 'https://t.me/telegram' },
   { id: 'invite_1', title: 'Пригласить 1 друга', desc: '+5000 🍯', reward: 5000, check: () => state.refCount >= 1 },
-  { id: 'tap_100', title: 'Сделать 100 тапов', desc: '+1000 🍯', reward: 1000, check: () => state.balance >= 100 },
+  { id: 'tap_100', title: 'Сделать 100 тапов', desc: '+1500 🍯', reward: 1500, check: () => state.totalTaps >= 100 },
+  { id: 'tap_500', title: 'Сделать 500 тапов', desc: '+5000 🍯', reward: 5000, check: () => state.totalTaps >= 500 },
+  { id: 'level_5', title: 'Достичь 5 уровня', desc: '+3000 🍯', reward: 3000, check: () => state.level >= 5 },
 ];
 
 function renderTasks() {
   const list = document.getElementById('taskList');
   if (!list) return;
   list.innerHTML = '';
+
   TASKS.forEach(t => {
     const done = state.completedTasks.includes(t.id);
     const card = document.createElement('div');
@@ -489,27 +543,37 @@ function renderTasks() {
         <div class="card-title">${t.title}</div>
         <div class="card-desc">${t.desc}</div>
       </div>
-      <button class="btn ${done ? '' : 'primary'}" data-id="${t.id}" ${done ? 'disabled' : ''}>${done ? 'Готово' : 'Выполнить'}</button>
+      <button class="btn ${done ? '' : 'primary'}" data-id="${t.id}" ${done ? 'disabled' : ''}>
+        ${done ? 'Готово' : 'Выполнить'}
+      </button>
     `;
     list.appendChild(card);
   });
+
   list.querySelectorAll('button:not([disabled])').forEach(btn => {
     btn.addEventListener('click', () => {
       const t = TASKS.find(x => x.id === btn.dataset.id);
-      if (t.check && !t.check()) { toast('❌ Условие не выполнено'); return; }
+      if (!t) return;
+      if (t.check && !t.check()) {
+        toast('❌ Условие ещё не выполнено');
+        haptic('error');
+        return;
+      }
       if (t.url) window.open(t.url, '_blank');
       state.balance += t.reward;
       state.completedTasks.push(t.id);
-      save();
+      save(true);
       renderTasks();
-      toast('🎉 Награда: +' + t.reward + ' 🍯');
+      toast('🎉 Награда: +' + fmt(t.reward) + ' 🍯');
+      haptic('success');
     });
   });
 }
 
 /* ============ FRIENDS ============ */
 function renderFriends() {
-  const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
+  const botUsername = 'your_bot'; // ← замени на имя своего бота
+  const link = `https://t.me/${botUsername}?start=ref_${state.userId || 'guest'}`;
   const linkEl = document.getElementById('refLink');
   const countEl = document.getElementById('refCount');
   if (linkEl) linkEl.textContent = link;
@@ -519,9 +583,14 @@ function renderFriends() {
 const inviteBtn = document.getElementById('inviteBtn');
 if (inviteBtn) {
   inviteBtn.addEventListener('click', () => {
-    const link = `https://t.me/your_bot?start=ref_${state.userId || 'guest'}`;
+    const botUsername = 'your_bot';
+    const link = `https://t.me/${botUsername}?start=ref_${state.userId || 'guest'}`;
     if (navigator.share) {
-      navigator.share({ title: 'Bee Tap', text: 'Тапай мед и получай награды!', url: link }).catch(() => {});
+      navigator.share({
+        title: 'Bee Tap 🐝',
+        text: 'Тапай мёд и прокачивай пасеку!',
+        url: link
+      }).catch(() => {});
     } else {
       navigator.clipboard.writeText(link).then(() => toast('📋 Ссылка скопирована'));
     }
@@ -535,23 +604,22 @@ const MINE_ITEMS = [
   { id: 'farm3', title: 'Медовая империя', desc: '+1000 🍯/час', price: 40000, rate: 1000 },
 ];
 
-function getPassiveRate() {
-  return state.passiveLevel * 50; 
-}
-
 function renderMine() {
   const list = document.getElementById('mineList');
   if (!list) return;
+
   const now = Date.now();
   const hours = (now - state.lastPassiveClaim) / 3600000;
-  const earned = Math.floor(getPassiveRate() * hours);
-  
+  const earned = Math.floor(state.passiveRate * hours);
+
   list.innerHTML = `
     <div class="card">
-      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
+      </div>
       <div class="card-body">
         <div class="card-title">Накоплено меда</div>
-        <div class="card-desc">${fmt(earned)} 🍯 за ${hours.toFixed(2)} ч</div>
+        <div class="card-desc">${fmt(earned)} 🍯 за ${hours.toFixed(1)} ч • ${fmt(state.passiveRate)}/час</div>
       </div>
       <button class="btn primary" id="claimPassive">Забрать</button>
     </div>
@@ -562,23 +630,33 @@ function renderMine() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
+      </div>
       <div class="card-body">
         <div class="card-title">${m.title}</div>
         <div class="card-desc">${m.desc}</div>
       </div>
-      <button class="btn ${owned ? '' : 'primary'}" ${owned ? 'disabled' : ''}>${owned ? 'Куплено' : fmt(m.price) + ' 🍯'}</button>
+      <button class="btn ${owned ? '' : 'primary'}" ${owned ? 'disabled' : ''}>
+        ${owned ? 'Куплено' : fmt(m.price) + ' 🍯'}
+      </button>
     `;
     list.appendChild(card);
+
     if (!owned) {
       card.querySelector('button').addEventListener('click', () => {
-        if (state.balance < m.price) { toast('❌ Недостаточно меда'); return; }
+        if (state.balance < m.price) {
+          toast('❌ Недостаточно меда');
+          haptic('error');
+          return;
+        }
         state.balance -= m.price;
         state.boughtBoosts.push(m.id);
-        state.passiveLevel += m.rate / 50;
-        save();
+        state.passiveRate += m.rate;
+        save(true);
         renderMine();
         toast('✅ Куплено: ' + m.title);
+        haptic('success');
       });
     }
   });
@@ -586,31 +664,58 @@ function renderMine() {
   const claimBtn = document.getElementById('claimPassive');
   if (claimBtn) {
     claimBtn.addEventListener('click', () => {
-      if (earned < 1) { toast('🐝 Мед еще не накопился'); return; }
+      if (earned < 1) {
+        toast('🐝 Мед ещё не накопился');
+        return;
+      }
       state.balance += earned;
       state.lastPassiveClaim = now;
-      save();
+      save(true);
       renderMine();
       toast('💰 Получено: +' + fmt(earned) + ' 🍯');
+      haptic('success');
     });
   }
 }
 
 /* ============ SHOP ============ */
 const SHOP_ITEMS = [
-  { id: 'energy_refill', title: 'Полный заряд энергии', desc: 'Мгновенно восстановить энергию', price: 500, action: () => { state.energy = state.maxEnergy; } },
-  { id: 'tap_x2', title: 'x2 к тапу на 1 час', desc: 'Удвоение силы тапа', price: 2000, action: () => { state.tapPower *= 2; setTimeout(() => { state.tapPower = Math.max(1, Math.floor(state.tapPower / 2)); save(); }, 3600000); } },
+  {
+    id: 'energy_refill',
+    title: 'Полный заряд энергии',
+    desc: 'Мгновенно восстановить энергию',
+    price: 500,
+    action: () => { state.energy = state.maxEnergy; }
+  },
+  {
+    id: 'tap_x2',
+    title: 'x2 к тапу на 1 час',
+    desc: 'Удвоение силы тапа',
+    price: 2000,
+    action: () => {
+      const old = state.tapPower;
+      state.tapPower *= 2;
+      setTimeout(() => {
+        state.tapPower = Math.max(1, Math.floor(state.tapPower / 2));
+        save(true);
+        toast('⏰ Бонус x2 закончился');
+      }, 3600000);
+    }
+  },
 ];
 
 function renderShop() {
   const list = document.getElementById('shopList');
   if (!list) return;
   list.innerHTML = '';
+
   SHOP_ITEMS.forEach(s => {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1z"/></svg></div>
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1z"/></svg>
+      </div>
       <div class="card-body">
         <div class="card-title">${s.title}</div>
         <div class="card-desc">${s.desc}</div>
@@ -618,24 +723,31 @@ function renderShop() {
       <button class="btn primary">${fmt(s.price)} 🍯</button>
     `;
     list.appendChild(card);
+
     card.querySelector('button').addEventListener('click', () => {
-      if (state.balance < s.price) { toast('❌ Недостаточно меда'); return; }
+      if (state.balance < s.price) {
+        toast('❌ Недостаточно меда');
+        haptic('error');
+        return;
+      }
       state.balance -= s.price;
       s.action();
-      save();
+      save(true);
       toast('✅ Куплено: ' + s.title);
+      haptic('success');
     });
   });
 }
 
-/* ============ PROFILE RESET ============ */
+/* ============ PROFILE ============ */
 const resetBtn = document.getElementById('resetBtn');
 if (resetBtn) {
   resetBtn.addEventListener('click', () => {
-    if (confirm('Сбросить весь прогресс?')) {
+    if (confirm('Точно сбросить весь прогресс? Это действие нельзя отменить.')) {
       localStorage.removeItem(SAVE_KEY);
       state = { ...defaultState };
-      save();
+      selectedItem = state.inventory[0];
+      save(true);
       renderTopbar();
       renderTasks();
       renderMine();
@@ -656,7 +768,10 @@ renderShop();
 renderFriends();
 renderUpgrader();
 updateChanceUI();
-if (document.getElementById('wheelIcon')) {
+
+if (document.getElementById('wheelIcon') && selectedItem) {
   document.getElementById('wheelIcon').textContent = selectedItem.icon;
 }
-save();
+
+// принудительное сохранение при закрытии
+window.addEventListener('beforeunload', () => save(true));
